@@ -71,8 +71,8 @@ def install_dependencies():
     if os_name == "Linux":
         print("Detected Linux. Installing system dependencies with apt-get...")
         dependencies_apt = ["rubberband-cli", "fluidsynth", "fluid-soundfont-gm"]
-        run_command("sudo apt-get update -y")
-        run_command(f"sudo apt-get install -y {' '.join(dependencies_apt)}")
+        run_command("apt-get update -y")
+        run_command(f"apt-get install -y {' '.join(dependencies_apt)}")
     
     elif os_name == "Windows":
         print("Detected Windows. Automating dependency installation...")
