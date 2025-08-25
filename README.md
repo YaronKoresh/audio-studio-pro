@@ -1,14 +1,55 @@
-# Audio Studio Pro
+# Audio Studio Pro 🎵
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python: 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://www.python.org/downloads/)
+Audio Studio Pro is a comprehensive, AI-powered application for professional audio production. It provides a suite of tools for everything from mastering and mixing to voice conversion and music generation.
 
-**Author:** [Yaron Koresh](mailto:aharonkoresh1@gmail.com)
+## Features ✨
 
----
+* **AI Mastering:** Automatically master your tracks with professional-grade results.
+
+* **Vocal Tools:** Perform voice conversion, auto-tuning, and stem separation (acapella/karaoke).
+
+* **Music Generation:** Create original music from text prompts using AI.
+
+* **MIDI Tools:** Convert audio to MIDI and vice-versa, and enhance MIDI files with AI.
+
+* **Audio Editing:** Change audio speed, extend tracks, and mix stems.
+
+* **Analysis & Visualization:** Get track feedback, identify instruments, analyze BPM/key, and create spectrograms or beat-synced videos.
+
+* **Steganography:** Hide and reveal secret messages within audio files.
+
+* **Support Chat:** Get help from Fazzer, the AI assistant.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+* **Python 3.7+** is required. The script will attempt to install it for you if it's not found.
+
+* For Linux, you may need to install `rubberband-cli`, `fluidsynth`, and `fluid-soundfont-gm` using your package manager.
+
+### Installation & Usage
+
+Simply run the appropriate script for your operating system. It will handle the installation of all dependencies and launch the application automatically.
+
+**Windows:**
+Double-click `run_studio.bat`.
+
+```
+run_studio.bat
+```
+
+**macOS & Linux:**
+Open your terminal and run the following command:
+
+```
+sh run_studio.sh
+```
 
 ## Contributing
 
-- Before asking for support, please make sure you are using the [latest version](https://github.com/YaronKoresh/audio-studio-pro).
-- To report bugs or suggest enhancements, please search the [open or closed issues](https://github.com/YaronKoresh/audio-studio-pro/issues?q=is%3Aissue) before opening a new one.
+Contributions are welcome! Please feel free to submit a pull request or open an issue for any bugs or feature requests.
 
+## License
+
+This project is licensed under the MIT License.
