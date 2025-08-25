@@ -97,18 +97,18 @@ def install_dependencies():
         print(f"Unsupported OS: {os_name}. Manual installation of system dependencies may be required.")
 
     print("\nInstalling Python packages with pip...")
-    dependencies_1 = ["cython"]
-    dependencies_2 = [
-        "requests", "accelerate", "numpy", "httpx", "gradio", "compressed-tensors", "sentencepiece",
-        "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
-        "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
-        "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
-        "chatterbox-tts"
+    dependencies = [
+        "cython", "requests", "accelerate", "numpy", "httpx", "gradio", 
+        "compressed-tensors", "sentencepiece", "spaces", "matchering", 
+        "librosa", "pydub", "googledrivedownloader", "torch", "torchvision", 
+        "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
+        "pillow", "demucs==4.0.0", "matplotlib", "transformers", "scipy", 
+        "soundfile", "madmom", "chatterbox-tts"
     ]
     
-    run_command(f"{sys.executable} -m pip install --upgrade pip")
-    run_command(f"pip install --force-reinstall {' '.join(dependencies_1)}")
-    run_command(f"pip install --force-reinstall {' '.join(dependencies_2)}")
+    pip_executable = f'"{sys.executable}" -m pip'
+    run_command(f"{pip_executable} install --upgrade pip")
+    run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies)}")
     
     print("\nDependency installation process finished.")
 
