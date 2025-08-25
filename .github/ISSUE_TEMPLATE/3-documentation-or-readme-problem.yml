@@ -1,0 +1,49 @@
+name: 📗 Documentation Issue Report
+description: Report a problem or suggest an improvement to the documentation.
+labels: [documentation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for helping us improve our documentation! 📚
+
+        We appreciate you taking the time to report an issue or suggest an enhancement to our documentation. Please provide as much detail as possible by answering the following questions.
+
+        ---
+  - type: textarea
+    attributes:
+      label: Link(s) to the Affected Documentation
+      description: Please provide the specific URL(s) or file path(s) of the documentation you are referring to. If it spans multiple pages, please indicate the relevant sections.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Issue Type
+      description: What kind of issue are you reporting?
+      options:
+        - Typo or grammatical error
+        - Incorrect information
+        - Missing information
+        - Unclear or confusing explanation
+        - Outdated information
+        - Difficulty in navigation or structure
+        - Suggestion for improvement
+        - Other (please specify below)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Other Issue Type (if selected above)
+      description: Please specify the issue type if 'Other' was selected.
+    validations:
+      required: false
+  - type: textarea
+    attributes:
+      label: Detailed Description of the Problem
+      description: Please describe the specific problem you encountered. Be as detailed as possible, explaining what is incorrect, missing, unclear, or outdated. If you have a suggestion for improvement, please describe it clearly.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed Solution (Optional)
+      description: If you have a suggestion for how to fix the issue or implement your improvement, please share it here. This could include suggested wording, additional information to include, or alternative explanations.

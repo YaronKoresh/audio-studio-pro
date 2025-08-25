@@ -1,0 +1,40 @@
+name: ✨ Improvement/Enhancement Proposal
+description: Suggest a general improvement or enhancement to the project, potentially involving external APIs.
+labels: [improvement, enhancement, proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Proposing an Improvement or Enhancement ✨
+
+        Thank you for sharing your ideas to make our project better! Please provide as much detail as possible to help us understand your proposal and its potential impact.
+
+        ---
+  - type: textarea
+    attributes:
+      label: Current Situation and Problem/Opportunity
+      description: Describe the current state of the codebase, architecture, process, or functionality you are proposing to improve or enhance. What are the pain points, limitations, inefficiencies, or opportunities for growth you've identified?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Proposed Improvement/Enhancement
+      description: Clearly describe your proposed change. What specific modifications are you suggesting? How would it be different from the current situation? If it involves an external API, please mention it here.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Involvement of External API (If Applicable)
+      description: If your proposal involves integrating with an external API, please provide its name and a link to its documentation. Describe how you envision the integration working and what data would be exchanged.
+  - type: textarea
+    attributes:
+      label: Potential Costs, Challenges, and Considerations
+      description: What are the potential costs (e.g., development time, API usage fees), challenges (e.g., complexity, reliability of external services), risks (e.g., regressions, security implications), or other important considerations?
+  - type: textarea
+    attributes:
+      label: Alternatives Considered (Optional)
+      description: Have you considered other ways to achieve this improvement or enhancement, either through internal development or different external services? If so, why is this your preferred approach?
+  - type: textarea
+    attributes:
+      label: Proposed Steps or Implementation Plan (Optional)
+      description: If you have any initial thoughts on how this improvement could be implemented (e.g., high-level steps, specific technologies to use), please share them here.

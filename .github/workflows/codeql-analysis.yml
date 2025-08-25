@@ -1,0 +1,30 @@
+name: "Code scanning - action"
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  CodeQL:
+
+    permissions:
+      contents: read
+      security-events: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 100
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      # No 'languages' input specified here
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3

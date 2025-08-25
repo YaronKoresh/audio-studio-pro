@@ -1,0 +1,85 @@
+name: 🐛 Bug report
+description: Create a report to help us improve
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Thank you for helping us squash this bug! 🐞
+
+        We appreciate you taking the time to report this issue. To help us diagnose and fix it effectively, please provide as much detail as possible by answering the following questions.
+
+        ---
+  - type: input
+    attributes:
+      label: Version
+      description: What version of the software/library are you experiencing this issue on? (e.g., `v2.5.1`, commit `a1b2c3d`)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Operating System
+      description: What operating system and version are you using? (e.g., `Windows 11`, `macOS Sonoma 14.5`, `Ubuntu 24.04`)
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: UI (User Interfaces)
+      description: In which UI did you encounter this bug?
+      multiple: true
+      options:
+        - Headless Web Browser
+        - Web Browser GUI
+        - Other CLI (Command Line Interface)
+        - Other GUI (Graphical User Interface)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Detailed Steps to Reproduce
+      description: Provide a numbered list of precise steps that lead to the bug. Include specific actions and inputs.
+      value: |
+        1.
+        2.
+        3.
+        4.
+        5.
+        ...
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Outcome
+      description: Describe what actually happened. Please include any error messages, or unexpected behavior descriptions.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Frequency
+      description: How often does this bug occur?
+      options:
+        - Always (100% of the time)
+        - Often (frequently, but not always)
+        - Sometimes (intermittently)
+        - Rarely (only occasionally)
+        - Once (happened only a single time)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Screenshots (Optional)
+      description: If the bug is visual, please attach (Drag & Drop, or just copy-paste) any relevant screenshots, into this textbox, to help illustrate the issue.
+  - type: textarea
+    attributes:
+      label: Potential Causes / Workarounds / Related Issues (Optional)
+      description: If you have any educated guesses or insights into the underlying cause of the bug, please share them here. This can be very helpful!
+  - type: dropdown
+    attributes:
+      label: Custom Modifications / Configuration
+      description: Please select the correct statement.
+      options:
+        - I made custom corrections, or improvements, to any code or configuration, before getting the error.
+        - The error occurred, while using the original files, from the current repository.
+    validations:
+      required: true
