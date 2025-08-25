@@ -104,7 +104,7 @@ def install_dependencies():
         "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
         "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
         "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
-        "stegano", "git+https://github.com/YaronKoresh/TTS.git", "compressed-tensors"
+        "stegano", "compressed-tensors", "sentencepiece"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
@@ -125,12 +125,11 @@ from scipy.io.wavfile import write as write_wav
 import matchering as mg
 import pydub
 from googledrivedownloader import download_file_from_google_drive
-from transformers import AutoProcessor, MusicgenForConditionalGeneration, pipeline
+from transformers import AutoProcessor, MusicgenForConditionalGeneration, pipeline, SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
 from moviepy.editor import (ImageClip, AudioFileClip, CompositeVideoClip, VideoFileClip,
                             TextClip, ColorClip, vfx)
 from moviepy.video.VideoClip import DataVideoClip
 from PIL import Image, ImageFilter
-from TTS.api import TTS
 from basic_pitch.inference import predict as predict_midi
 from midi2audio import FluidSynth
 import soundfile as sf
@@ -161,42 +160,45 @@ class CustomConversation:
         self.generated_responses.append(response)
 
 def load_models():
+    tts_processor, tts_model, tts_vocoder, speaker_model = None, None, None, None
+    asr_pipeline, instrument_classifier, chatbot_pipeline = None, None, None
+    musicgen_processor, musicgen_model = None, None
+
     try:
-        tts_model = TTS("coqui/XTTS-v2")
+        tts_processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
+        tts_model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts").to(DEVICE)
+        tts_vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(DEVICE)
+        speaker_model = pipeline("feature-extraction", model="speechbrain/spkrec-xvect-voxceleb", device=DEVICE)
     except Exception as e:
-        print(f"Failed to load TTS model: {e}")
-        tts_model = None
+        print(f"Failed to load SpeechT5 TTS models: {e}")
+
     try:
-        asr_pipeline = pipeline("automatic-speech-recognition", model="openai/whisper-base")
+        asr_pipeline = pipeline("automatic-speech-recognition", model="openai/whisper-large-v3-turbo")
     except Exception as e:
         print(f"Failed to load ASR pipeline: {e}")
-        asr_pipeline = None
+
     try:
         instrument_classifier = pipeline("audio-classification", model="MIT/ast-finetuned-audioset-10-10-0.4593")
     except Exception as e:
         print(f"Failed to load instrument classifier: {e}")
-        instrument_classifier = None
+
     try:
         chatbot_pipeline = pipeline("image-text-to-text", model="zai-org/GLM-4.5V-FP8")
     except Exception as e:
         print(f"Failed to load chatbot pipeline: {e}")
-        chatbot_pipeline = None
+
     try:
-        processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
-        generation_model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small").to(DEVICE)
+        musicgen_processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
+        musicgen_model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small").to(DEVICE)
     except Exception as e:
         print(f"Failed to load MusicGen model: {e}")
-        processor, generation_model = None, None
-    return tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, processor, generation_model
 
-tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, processor, generation_model = load_models()
+    return (tts_processor, tts_model, tts_vocoder, speaker_model, asr_pipeline, 
+            instrument_classifier, chatbot_pipeline, musicgen_processor, musicgen_model)
 
-TTS_LANGUAGES = {
-    "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it",
-    "Portuguese": "pt", "Polish": "pl", "Turkish": "tr", "Russian": "ru", "Dutch": "nl",
-    "Czech": "cs", "Arabic": "ar", "Chinese": "zh-cn", "Japanese": "ja", "Hungarian": "hu",
-    "Korean": "ko", "Hindi": "hi"
-}
+(tts_processor, tts_model, tts_vocoder, speaker_model, asr_pipeline, 
+ instrument_classifier, chatbot_pipeline, processor, generation_model) = load_models()
+
 ALL_LANGUAGES = {
     "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it",
     "Portuguese": "pt", "Polish": "pl", "Turkish": "tr", "Russian": "ru", "Dutch": "nl",
@@ -253,10 +255,8 @@ def _humanize_ai_output(audio_path):
     """Applies subtle effects to make AI-generated audio sound more natural."""
     try:
         y, sr = librosa.load(audio_path, sr=None)
-        # Add a tiny amount of noise
         noise = np.random.randn(len(y))
         y_noisy = y + 0.0001 * noise
-        # Apply a very subtle random EQ
         y_eq = y_noisy * (1 + 0.01 * np.sin(2 * np.pi * 1000 * np.arange(len(y)) / sr))
         sf.write(audio_path, y_eq, sr)
         return audio_path
@@ -272,67 +272,63 @@ def _transcribe_audio_logic(audio_path, language):
     return asr_pipeline(audio_path, generate_kwargs={"language": lang_code}, return_timestamps=True)["text"]
 
 @spaces.GPU(duration=150)
-def _generate_voice_logic(text, reference_audio, language, format_choice, humanize):
-    if tts_model is None: raise gr.Error("TTS model is not available.")
-    if not text or not reference_audio: raise gr.Error("Please provide text and a reference voice audio.")
-    if language not in TTS_LANGUAGES:
-        raise gr.Error(f"Language '{language}' is not supported for voice generation. "
-                       f"Available languages: {', '.join(TTS_LANGUAGES.keys())}")
-    lang_code = TTS_LANGUAGES.get(language)
+def _generate_voice_logic(text, reference_audio, format_choice, humanize):
+    if not all([tts_processor, tts_model, tts_vocoder, speaker_model]):
+        raise gr.Error("TTS models are not available.")
+    if not text or not reference_audio: 
+        raise gr.Error("Please provide text and a reference voice audio.")
+
+    embeddings_dataset = speaker_model(reference_audio, sampling_rate=16000)
+    speaker_embeddings = torch.tensor(embeddings_dataset).unsqueeze(0).to(DEVICE)
+
+    inputs = tts_processor(text=text, return_tensors="pt")
+    spectrogram = tts_model.generate_speech(inputs["input_ids"].to(DEVICE), speaker_embeddings)
+
+    with torch.no_grad():
+        speech = tts_vocoder(spectrogram)
+
     output_path_stem = get_temp_file_path(f"_generated_{random_string()}").replace(".wav", "")
     temp_wav_path = str(Path(output_path_stem).with_suffix(".wav"))
-    tts_model.tts_to_file(text=text, speaker_wav=reference_audio, language=lang_code, file_path=temp_wav_path)
+    sf.write(temp_wav_path, speech.cpu().numpy(), samplerate=16000)
+    
     if humanize:
         temp_wav_path = _humanize_ai_output(temp_wav_path)
+        
     sound = pydub.AudioSegment.from_file(temp_wav_path)
     final_output_path = export_audio(sound, output_path_stem, format_choice)
     delete_path(temp_wav_path)
     return final_output_path
 
 @spaces.GPU(duration=480)
-def _voice_conversion_logic(reference_audio, target_audio, language, mode, format_choice):
+def _voice_conversion_logic(reference_audio, target_audio, language, format_choice):
     if not reference_audio or not target_audio:
         raise gr.Error("Please upload both a reference voice and a target song.")
-    if tts_model is None: raise gr.Error("TTS model is not available.")
+    if not all([tts_processor, tts_model, tts_vocoder, speaker_model]):
+        raise gr.Error("TTS models are not available for voice conversion.")
+    
     ref_dir, target_dir = tempfile.mkdtemp(), tempfile.mkdtemp()
     try:
-        run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{ref_dir}" "{reference_audio}"')
-        ref_vocals_path = Path(ref_dir) / "htdemucs_ft" / Path(reference_audio).stem / "vocals.wav"
-        if not ref_vocals_path.exists():
-            raise gr.Error("Failed to extract vocals from the reference audio.")
         run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{target_dir}" "{target_audio}"')
         target_vocals_path = Path(target_dir) / "htdemucs_ft" / Path(target_audio).stem / "vocals.wav"
         target_instrumental_path = Path(target_dir) / "htdemucs_ft" / Path(target_audio).stem / "no_vocals.wav"
         if not target_vocals_path.exists() or not target_instrumental_path.exists():
             raise gr.Error("Failed to separate vocals and instrumental from the target song.")
-        new_vocals_path = get_temp_file_path("_new_vocals.wav")
-        if language not in TTS_LANGUAGES:
-            raise gr.Error(f"Language '{language}' is not supported for voice conversion. "
-                           f"Available languages: {', '.join(TTS_LANGUAGES.keys())}")
-        lang_code = TTS_LANGUAGES.get(language)
-        if mode == "Singing":
-            tts_model.voice_conversion_to_file(
-                source_wav=str(target_vocals_path),
-                target_wav=new_vocals_path,
-                speaker_wav=str(ref_vocals_path),
-                language=lang_code
-            )
-        else:
-            transcribed_text = _transcribe_audio_logic(str(target_vocals_path), language)
-            if not transcribed_text:
-                raise gr.Error("Could not transcribe the lyrics from the target song.")
-            tts_model.tts_to_file(
-                text=transcribed_text,
-                speaker_wav=str(ref_vocals_path),
-                language=lang_code,
-                file_path=new_vocals_path
-            )
+            
+        transcribed_text = _transcribe_audio_logic(str(target_vocals_path), language)
+        if not transcribed_text:
+            raise gr.Error("Could not transcribe the lyrics from the target song.")
+            
+        new_vocals_path = _generate_voice_logic(transcribed_text, reference_audio, "wav", humanize=False)
+
         instrumental = pydub.AudioSegment.from_file(str(target_instrumental_path))
         new_vocals = pydub.AudioSegment.from_file(new_vocals_path)
+        
         new_vocals = new_vocals.apply_gain(instrumental.dBFS - new_vocals.dBFS)
         combined_audio = instrumental.overlay(new_vocals)
+        
         output_stem = str(Path(target_audio).with_name(f"{Path(target_audio).stem}_voice_converted"))
         final_output_path = export_audio(combined_audio, output_stem, format_choice)
+        
         delete_path(new_vocals_path)
         return final_output_path
     finally:
@@ -467,7 +463,6 @@ def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_pos
 
 def stretch_audio_cli(input_path, output_path, speed_factor, crispness=6):
     if not os.path.exists(input_path): return False
-    # Use rubberband for time stretching, which preserves pitch.
     command = ["rubberband", "--tempo", str(speed_factor), "--crispness", str(crispness), "-q", input_path, output_path]
     try:
         subprocess.run(command, check=True, capture_output=True, text=True)
@@ -766,7 +761,45 @@ def _chatbot_response_logic(message, history):
         history.append((message, "My AI brain is offline right now, sorry! Please try again later."))
         return "", history
 
-    system_prompt = "The following is a conversation with Fazzer. Fazzer is a helpful and friendly AI assistant for the Audio Studio Pro application. This project was created by Yaron in Israel. Fazzer's goal is to assist users with their questions about the app's features like Mastering, Stem Mixing, Voice Conversion, etc. Fazzer keeps its answers concise and helpful."
+    system_prompt = """You are Fazzer, the official AI assistant for the 'Audio Studio Pro' application. Your personality is friendly, helpful, and enthusiastic about audio production. Your primary goal is to assist users by answering their questions about the application's features and guiding them on how to use the tools.
+
+**Key Information about the project:**
+- The application is called **Audio Studio Pro**.
+- It was created by a developer named **Yaron** in **Israel**.
+- Your name is **Fazzer**.
+
+**Your Core Responsibilities:**
+1. Explain the purpose of each tool in the application.
+2. Provide simple instructions on how to use the features.
+3. Maintain a concise, clear, and encouraging tone.
+4. If you don't know the answer, politely say so. Do not make up features.
+
+**Here is a complete list of the application's features you must be knowledgeable about:**
+
+* **Mastering:** Automatically enhances a track's loudness and clarity to a professional level.
+* **Vocal Auto-Tune:** Corrects the pitch of vocals in a song to make them sound more in-tune.
+* **MIDI Tools:** A suite for converting audio to MIDI files, MIDI files back to audio, and using AI to enhance a simple MIDI melody into a richer piece of music.
+* **Audio Extender:** Uses AI to seamlessly continue a piece of music, making it longer.
+* **Stem Mixer:** Allows users to upload individual instrument tracks (stems) like drums, bass, and vocals, and mixes them together into a final song.
+* **Track Feedback:** An AI tool that analyzes a user's track and provides constructive feedback on its technical aspects, like dynamics and frequency balance.
+* **Instrument ID:** Identifies the different musical instruments present in an audio file.
+* **AI Video Gen:** Creates a simple, abstract music visualizer video based on the audio's characteristics.
+* **Speed & Pitch:** Changes the speed of an audio track, with an option to preserve the original pitch.
+* **Stem Separation:** Splits a full song into two parts: 'Acapella' (vocals only) or 'Karaoke' (instrumental only).
+* **Vocal Pitch Shifter:** Changes the pitch of only the vocals in a song, while leaving the instrumental untouched.
+* **Voice Conversion:** Takes the voice from one person and applies it to the lyrics and melody of another song, essentially making it sound like the first person is singing the second song.
+* **DJ AutoMix:** Automatically mixes multiple songs together with smooth, beatmatched transitions, like a DJ.
+* **AI Music Gen:** Creates original music from a text description (e.g., 'upbeat synthwave').
+* **AI Voice Gen:** Clones a person's voice from a short audio sample and uses it to say any text the user types (Text-to-Speech).
+* **Analysis (BPM & Key):** Detects the musical key and Beats Per Minute (BPM) of a track.
+* **Speech-to-Text:** Transcribes spoken words from an audio file into written text.
+* **Spectrum Analyzer:** Creates a visual graph (a spectrogram) of the frequencies in an audio file over time.
+* **Beat Visualizer:** Generates a video where a user-provided image pulses and animates in time with the beat of an audio track.
+* **Lyric Video Creator:** Helps create simple lyric videos by overlaying text onto a background image or video, synchronized with the audio.
+* **Steganography:** A tool to hide a secret text message within an audio file, and to reveal it later with a password.
+* **Support Chat:** That's you! The chatbot for helping users.
+
+Always be ready to answer questions like 'What is Stem Mixing?' or 'How do I use the Vocal Pitch Shifter?' based on the descriptions above."""
 
     conversation = CustomConversation(system_prompt)
     for user_turn, bot_turn in history:
@@ -914,6 +947,8 @@ def main():
     """
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(ALL_LANGUAGES.keys()))
+    
+    tts_enabled = all([tts_processor, tts_model, tts_vocoder, speaker_model])
 
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
@@ -1103,7 +1138,6 @@ def main():
                             vc_ref_audio = gr.Audio(label="Reference Voice Audio (Source Voice)", type='filepath')
                             vc_target_audio = gr.Audio(label="Target Song (Content & Melody)", type='filepath')
                             vc_language = gr.Dropdown(language_choices, label="Language of Target Song", value="English")
-                            vc_mode = gr.Radio(["Speaking", "Singing"], label="Conversion Mode", value="Singing", info="Singing mode tries to preserve the melody.")
                             vc_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): vc_btn = gr.Button("Convert Voice", variant="primary"); clear_vc_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
@@ -1143,16 +1177,15 @@ def main():
                                 gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_gen:
                     gr.Markdown("## AI Voice Generation")
-                    if tts_model is None: gr.Markdown("<p style='color:red;text-align:center;'>Voice Generation model failed to load and is disabled.</p>")
+                    if not tts_enabled: gr.Markdown("<p style='color:red;text-align:center;'>Voice Generation model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
                             vg_ref = gr.Audio(label="Reference Voice (Clear, 5-15s)", type='filepath')
                             vg_text = gr.Textbox(lines=4, label="Text to Speak", placeholder="Enter the text you want the generated voice to say...")
-                            vg_language = gr.Dropdown(language_choices, label="Language", value="English")
                             vg_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             vg_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row():
-                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=tts_model is not None);
+                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=tts_enabled);
                                 clear_vg_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vg_output_box:
@@ -1280,10 +1313,10 @@ def main():
         create_ui_handler(speed_btn, speed_output, speed_output_box, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, _separate_stems_logic, stem_input, stem_type, stem_format)
         create_ui_handler(vps_btn, vps_output, vps_output_box, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
-        create_ui_handler(vc_btn, vc_output, vc_output_box, _voice_conversion_logic, vc_ref_audio, vc_target_audio, vc_language, vc_mode, vc_format)
+        create_ui_handler(vc_btn, vc_output, vc_output_box, _voice_conversion_logic, vc_ref_audio, vc_target_audio, vc_language, vc_format)
         create_ui_handler(dj_btn, dj_output, dj_output_box, _auto_dj_mix_logic, dj_files, dj_mix_type, dj_target_bpm, dj_transition, dj_format)
         create_ui_handler(gen_btn, gen_output, gen_output_box, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
-        create_ui_handler(vg_btn, vg_output, vg_output_box, _generate_voice_logic, vg_text, vg_ref, vg_language, vg_format, vg_humanize)
+        create_ui_handler(vg_btn, vg_output, vg_output_box, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
         create_ui_handler(vis_btn, vis_output, vis_output_box, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
         create_ui_handler(lyric_btn, lyric_output, lyric_output_box, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
         create_ui_handler(steg_hide_btn, steg_hide_output, steg_hide_output_box, _hide_data_in_audio_logic, steg_hide_input, steg_hide_message, steg_hide_password, steg_hide_format)
