@@ -177,7 +177,7 @@ def load_models():
         print(f"Failed to load instrument classifier: {e}")
         instrument_classifier = None
     try:
-        chatbot_pipeline = pipeline("text-generation", model="zai-org/GLM-4.5-Air-FP8")
+        chatbot_pipeline = pipeline("text-generation", model="zai-org/GLM-4.5V-FP8")
     except Exception as e:
         print(f"Failed to load chatbot pipeline: {e}")
         chatbot_pipeline = None
@@ -1383,10 +1383,10 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-        def update_share_links(file_obj): return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro! ðŸŽµ"), visible=bool(file_obj))
+        def update_share_links(file_obj): return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro!"), visible=bool(file_obj))
 
         all_outputs = [master_output, extender_output, stem_mixer_output, video_gen_output, speed_output, stem_output, vps_output, vc_output, dj_output, gen_output, vg_output, vis_output, lyric_output, steg_hide_output]
-        all_share_links = [master_share_links, extender_share_links, stem_mixer_share_links, video_gen_share_links, speed_share_links, stem_share_links, vps_share_links, vc_share_links, dj_share_links, gen_share_links, vg_share_links, vis_share_links, lyric_share_links, gr.Markdown()] # No share for steganography
+        all_share_links = [master_share_links, extender_share_links, stem_mixer_share_links, video_gen_share_links, speed_share_links, stem_share_links, vps_share_links, vc_share_links, dj_share_links, gen_share_links, vg_share_links, vis_share_links, lyric_share_links, gr.Markdown()]
 
         for out_comp, share_comp in zip(all_outputs, all_share_links):
             out_comp.change(update_share_links, [out_comp], [share_comp])
