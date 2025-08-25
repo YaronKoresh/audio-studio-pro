@@ -136,6 +136,7 @@ import collections
 import collections.abc
 collections.MutableSequence = collections.abc.MutableSequence
 np.float = np.float64
+np.int = np.int32
 import madmom
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
