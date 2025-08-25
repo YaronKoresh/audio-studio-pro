@@ -98,19 +98,20 @@ def install_dependencies():
 
     print("\nInstalling Python packages with pip...")
     dependencies = [
-        "requests", "accelerate", "numpy", "httpx", "gradio", 
+        "peft", "requests", "accelerate", "numpy", "httpx", "gradio", 
         "compressed-tensors", "sentencepiece", "spaces", "matchering", 
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision", 
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
-        "pillow", "demucs==4.0.0", "matplotlib", "transformers==4.55.4", "scipy", 
+        "pillow", "demucs==4.0.0", "matplotlib", "scipy", 
         "soundfile", "madmom", "chatterbox-tts"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
     run_command(f"{pip_executable} install --upgrade pip")
-    run_command(f"{pip_executable} install --force-reinstall peft cython")
-    run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies)}")
-    
+    run_command(f"{pip_executable} install --force-reinstall --upgrade cython")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
+
     print("\nDependency installation process finished.")
 
 install_dependencies()
