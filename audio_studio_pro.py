@@ -775,7 +775,6 @@ def _chatbot_response_logic(message, history):
 4. If you don't know the answer, politely say so. Do not make up features.
 
 **Here is a complete list of the application's features you must be knowledgeable about:**
-
 * **Mastering:** Automatically enhances a track's loudness and clarity to a professional level.
 * **Vocal Auto-Tune:** Corrects the pitch of vocals in a song to make them sound more in-tune.
 * **MIDI Tools:** A suite for converting audio to MIDI files, MIDI files back to audio, and using AI to enhance a simple MIDI melody into a richer piece of music.
@@ -957,8 +956,7 @@ def main():
                             with gr.Row(): master_btn = gr.Button("Master Audio", variant="primary"); clear_master_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                              with gr.Group(visible=False) as master_output_box:
-                                master_output = gr.Audio(label="Mastered Output", interactive=False)
-                                master_download_btn = gr.DownloadButton("Download")
+                                master_output = gr.Audio(label="Mastered Output", interactive=False, show_download_button=True)
                                 master_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_autotune:
                     gr.Markdown("## Vocal Auto-Tune")
@@ -970,8 +968,7 @@ def main():
                             with gr.Row(): autotune_btn = gr.Button("Auto-Tune Vocals", variant="primary"); clear_autotune_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as autotune_output_box:
-                                autotune_output = gr.Audio(label="Auto-Tuned Song", interactive=False)
-                                autotune_download_btn = gr.DownloadButton("Download")
+                                autotune_output = gr.Audio(label="Auto-Tuned Song", interactive=False, show_download_button=True)
                                 autotune_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_midi_tools:
                     gr.Markdown("## MIDI Tools")
@@ -983,8 +980,7 @@ def main():
                                     with gr.Row(): a2m_btn = gr.Button("Convert to MIDI", variant="primary"); clear_a2m_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as a2m_output_box:
-                                        a2m_output = gr.File(label="Output MIDI", interactive=False)
-                                        a2m_download_btn = gr.DownloadButton("Download")
+                                        a2m_output = gr.File(label="Output MIDI", interactive=False, show_download_button=True)
                         with gr.TabItem("MIDI to Audio"):
                             with gr.Row():
                                 with gr.Column():
@@ -993,8 +989,7 @@ def main():
                                     with gr.Row(): m2a_btn = gr.Button("Convert to Audio", variant="primary"); clear_m2a_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as m2a_output_box:
-                                        m2a_output = gr.Audio(label="Output Audio", interactive=False)
-                                        m2a_download_btn = gr.DownloadButton("Download")
+                                        m2a_output = gr.Audio(label="Output Audio", interactive=False, show_download_button=True)
                         with gr.TabItem("AI MIDI Enhancer"):
                             with gr.Row():
                                 with gr.Column():
@@ -1004,8 +999,7 @@ def main():
                                     with gr.Row(): enhance_midi_btn = gr.Button("Enhance MIDI", variant="primary"); clear_enhance_midi_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as enhance_midi_output_box:
-                                        enhance_midi_output = gr.Audio(label="Enhanced Audio", interactive=False)
-                                        enhance_midi_download_btn = gr.DownloadButton("Download")
+                                        enhance_midi_output = gr.Audio(label="Enhanced Audio", interactive=False, show_download_button=True)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_audio_extender:
                     gr.Markdown("## Audio Extender")
                     with gr.Row():
@@ -1017,8 +1011,7 @@ def main():
                             with gr.Row(): extender_btn = gr.Button("Extend Audio", variant="primary"); clear_extender_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as extender_output_box:
-                                extender_output = gr.Audio(label="Extended Audio", interactive=False)
-                                extender_download_btn = gr.DownloadButton("Download")
+                                extender_output = gr.Audio(label="Extended Audio", interactive=False, show_download_button=True)
                                 extender_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stem_mixer:
                     gr.Markdown("## Stem Mixer")
@@ -1029,8 +1022,7 @@ def main():
                             with gr.Row(): stem_mixer_btn = gr.Button("Mix Stems", variant="primary"); clear_stem_mixer_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as stem_mixer_output_box:
-                                stem_mixer_output = gr.Audio(label="Mixed Track", interactive=False)
-                                stem_mixer_download_btn = gr.DownloadButton("Download")
+                                stem_mixer_output = gr.Audio(label="Mixed Track", interactive=False, show_download_button=True)
                                 stem_mixer_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_feedback:
                     gr.Markdown("## AI Track Feedback")
@@ -1058,8 +1050,7 @@ def main():
                             with gr.Row(): video_gen_btn = gr.Button("Generate Video", variant="primary"); clear_video_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as video_gen_output_box:
-                                video_gen_output = gr.Video(label="Generated Video", interactive=False)
-                                video_gen_download_btn = gr.DownloadButton("Download")
+                                video_gen_output = gr.Video(label="Generated Video", interactive=False, show_download_button=True)
                                 video_gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_speed:
                     gr.Markdown("## Speed & Pitch")
@@ -1072,8 +1063,7 @@ def main():
                             with gr.Row(): speed_btn = gr.Button("Change Speed", variant="primary"); clear_speed_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as speed_output_box:
-                                speed_output = gr.Audio(label="Modified Audio", interactive=False)
-                                speed_download_btn = gr.DownloadButton("Download")
+                                speed_output = gr.Audio(label="Modified Audio", interactive=False, show_download_button=True)
                                 speed_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stem:
                     gr.Markdown("## Stem Separation")
@@ -1085,8 +1075,7 @@ def main():
                             with gr.Row(): stem_btn = gr.Button("Separate Stems", variant="primary"); clear_stem_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as stem_output_box:
-                                stem_output = gr.Audio(label="Separated Track", interactive=False)
-                                stem_download_btn = gr.DownloadButton("Download")
+                                stem_output = gr.Audio(label="Separated Track", interactive=False, show_download_button=True)
                                 stem_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_vps:
                     gr.Markdown("## Vocal Pitch Shifter")
@@ -1098,8 +1087,7 @@ def main():
                             with gr.Row(): vps_btn = gr.Button("Shift Vocal Pitch", variant="primary"); clear_vps_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vps_output_box:
-                                vps_output = gr.Audio(label="Pitch Shifted Song", interactive=False)
-                                vps_download_btn = gr.DownloadButton("Download")
+                                vps_output = gr.Audio(label="Pitch Shifted Song", interactive=False, show_download_button=True)
                                 vps_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_conv:
                     gr.Markdown("## Voice Conversion")
@@ -1112,8 +1100,7 @@ def main():
                             with gr.Row(): vc_btn = gr.Button("Convert Voice", variant="primary"); clear_vc_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vc_output_box:
-                                vc_output = gr.Audio(label="Converted Song", interactive=False)
-                                vc_download_btn = gr.DownloadButton("Download")
+                                vc_output = gr.Audio(label="Converted Song", interactive=False, show_download_button=True)
                                 vc_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_dj:
                     gr.Markdown("## DJ AutoMix")
@@ -1127,8 +1114,7 @@ def main():
                             with gr.Row(): dj_btn = gr.Button("Create DJ Mix", variant="primary"); clear_dj_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as dj_output_box:
-                                dj_output = gr.Audio(label="Final DJ Mix", interactive=False)
-                                dj_download_btn = gr.DownloadButton("Download")
+                                dj_output = gr.Audio(label="Final DJ Mix", interactive=False, show_download_button=True)
                                 dj_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_music_gen:
                     gr.Markdown("## AI Music Generation")
@@ -1142,8 +1128,7 @@ def main():
                             with gr.Row(): gen_btn = gr.Button("Generate Music", variant="primary", interactive=(generation_model is not None)); clear_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as gen_output_box:
-                                gen_output = gr.Audio(label="Generated Music", interactive=False)
-                                gen_download_btn = gr.DownloadButton("Download")
+                                gen_output = gr.Audio(label="Generated Music", interactive=False, show_download_button=True)
                                 gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_gen:
                     gr.Markdown("## AI Voice Generation")
@@ -1159,8 +1144,7 @@ def main():
                                 clear_vg_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vg_output_box:
-                                vg_output = gr.Audio(label="Generated Voice Audio", interactive=False)
-                                vg_download_btn = gr.DownloadButton("Download")
+                                vg_output = gr.Audio(label="Generated Voice Audio", interactive=False, show_download_button=True)
                                 vg_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_analysis:
                     gr.Markdown("## BPM & Key Analysis")
@@ -1180,7 +1164,7 @@ def main():
                             with gr.Row(): stt_btn = gr.Button("Transcribe Audio", variant="primary", interactive=asr_pipeline is not None); clear_stt_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             stt_output = gr.Textbox(label="Transcription Result", interactive=False, lines=10)
-                            stt_download_btn = gr.DownloadButton("Download .txt", visible=False)
+                            stt_file_output = gr.File(label="Download Transcript", interactive=False, visible=False, show_download_button=True)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_spectrum:
                     gr.Markdown("## Spectrum Analyzer")
                     spec_input = gr.Audio(label="Upload Audio", type="filepath")
@@ -1197,7 +1181,7 @@ def main():
                             vis_intensity = gr.Slider(1.05, 1.5, 1.15, step=0.01, label="Beat Intensity")
                             with gr.Row(): vis_btn = gr.Button("Create Beat Visualizer", variant="primary"); clear_vis_btn = gr.Button("Clear", variant="secondary")
                     with gr.Group(visible=False) as vis_output_box:
-                        vis_output = gr.Video(label="Visualizer Output"); vis_download_btn = gr.DownloadButton("Download"); vis_share_links = gr.Markdown()
+                        vis_output = gr.Video(label="Visualizer Output", show_download_button=True); vis_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_lyric_vid:
                     gr.Markdown("## Lyric Video Creator")
                     with gr.Row():
@@ -1210,7 +1194,7 @@ def main():
                             lyric_text = gr.Textbox(label="Lyrics", lines=15, placeholder="Enter lyrics here, one line per phrase...")
                             load_transcript_btn = gr.Button("Get Lyrics from Audio (via Speech-to-Text)")
                     with gr.Group(visible=False) as lyric_output_box:
-                        lyric_output = gr.Video(label="Lyric Video Output"); lyric_download_btn = gr.DownloadButton("Download"); lyric_share_links = gr.Markdown()
+                        lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     gr.Markdown("## Support Chat with Fazzer")
                     chatbot_history = gr.Chatbot(label="Audio Studio Pro Support")
@@ -1241,21 +1225,21 @@ def main():
 
         def create_ui_handler(btn, out_el, out_box, out_share, logic_func, *inputs):
             def ui_handler_generator(*args):
-                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None), gr.update(visible=False)) # Add gr.update(visible=False) for share links
+                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None))
                 try:
                     result = logic_func(*args)
-                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(visible=True, value=create_share_links(result, "Check out what I made with Audio Studio Pro!")))
+                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result))
                 except Exception as e:
                     raise gr.Error(str(e))
-            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
+            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el])
 
         create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
-        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
-        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
-        create_ui_handler(enhance_midi_btn, enhance_midi_output, enhance_midi_output_box, enhance_midi_share_links, _enhance_midi_logic, enhance_midi_input, enhance_midi_format, enhance_midi_humanize)
+        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, None, _audio_to_midi_logic, a2m_input)
+        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, None, _midi_to_audio_logic, m2a_input, m2a_format)
+        create_ui_handler(enhance_midi_btn, enhance_midi_output, enhance_midi_output_box, None, _enhance_midi_logic, enhance_midi_input, enhance_midi_format, enhance_midi_humanize)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
-        create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_midi_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
+        create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
         create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_prompt, video_gen_format)
         create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
@@ -1295,13 +1279,14 @@ def main():
         analysis_btn.click(analysis_ui, [analysis_input], [analysis_btn, analysis_bpm_key_output])
 
         def stt_ui(audio_path, language):
-            yield {stt_btn: gr.update(value="Transcribing...", interactive=False), stt_output: "", stt_download_btn: gr.update(visible=False)}
+            yield {stt_btn: gr.update(value="Transcribing...", interactive=False), stt_output: "", stt_file_output: gr.update(visible=False)}
             try:
                 transcript = _transcribe_audio_logic(audio_path, language)
-                yield {stt_btn: gr.update(value="Transcribe Audio", interactive=True), stt_output: transcript, stt_download_btn: gr.update(visible=True)}
+                file_path = save_text_to_file(transcript)
+                yield {stt_btn: gr.update(value="Transcribe Audio", interactive=True), stt_output: transcript, stt_file_output: gr.update(visible=True, value=file_path)}
             except Exception as e:
                 raise gr.Error(str(e))
-        stt_btn.click(stt_ui, [stt_input, stt_language], [stt_btn, stt_output, stt_download_btn])
+        stt_btn.click(stt_ui, [stt_input, stt_language], [stt_btn, stt_output, stt_file_output])
 
         def spec_ui(audio_path):
             yield {spec_btn: gr.update(value="Generating...", interactive=False), spec_output: None}
@@ -1342,17 +1327,12 @@ def main():
         clear_gen_btn.click(lambda: {**clear_ui(gen_output, gen_output_box), **{gen_prompt: ""}}, [], [gen_output, gen_output_box, gen_prompt])
         clear_vg_btn.click(lambda: {**clear_ui(vg_ref, vg_output, vg_output_box), **{vg_text: ""}}, [], [vg_ref, vg_output, vg_output_box, vg_text])
         clear_analysis_btn.click(lambda: {**clear_ui(analysis_input), **{analysis_bpm_key_output: ""}}, [], [analysis_input, analysis_bpm_key_output])
-        clear_stt_btn.click(lambda: {**clear_ui(stt_input, stt_output), **{stt_download_btn: gr.update(visible=False)}}, [], [stt_input, stt_output, stt_download_btn])
+        clear_stt_btn.click(lambda: clear_ui(stt_input, stt_output, stt_file_output), [], [stt_input, stt_output, stt_file_output])
         clear_spec_btn.click(lambda: clear_ui(spec_input, spec_output), [], [spec_input, spec_output])
         clear_vis_btn.click(lambda: clear_ui(vis_image_input, vis_audio_input, vis_output, vis_output_box), [], [vis_image_input, vis_audio_input, vis_output, vis_output_box])
         clear_lyric_btn.click(lambda: {**clear_ui(lyric_audio, lyric_bg, lyric_output, lyric_output_box), **{lyric_text: ""}}, [], [lyric_audio, lyric_bg, lyric_output, lyric_output_box, lyric_text])
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
-
-        def update_share_links(file_obj):
-            return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro!"), visible=bool(file_obj))
-
-        stt_output.change(save_text_to_file, [stt_output], [stt_download_btn])
 
     app.queue(max_size=20).launch(debug=True)
 
