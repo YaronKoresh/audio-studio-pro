@@ -126,8 +126,7 @@ import matchering as mg
 import pydub
 from googledrivedownloader import download_file_from_google_drive
 from transformers import AutoProcessor, MusicgenForConditionalGeneration, pipeline, SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
-from moviepy.editor import (ImageClip, AudioFileClip, CompositeVideoClip, VideoFileClip,
-                            TextClip, ColorClip, vfx)
+from moviepy import ImageClip, AudioFileClip, CompositeVideoClip, VideoFileClip, TextClip, ColorClip, vfx
 from moviepy.video.VideoClip import DataVideoClip
 from PIL import Image, ImageFilter
 from basic_pitch.inference import predict as predict_midi
