@@ -103,6 +103,7 @@ def install_dependencies():
         "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
         "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
         "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
+        "chatterbox-tts"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
@@ -131,6 +132,7 @@ from basic_pitch.inference import predict as predict_midi
 from midi2audio import FluidSynth
 import soundfile as sf
 import librosa
+from chatterbox.tts import ChatterboxTTS
 
 import collections
 import collections.abc
@@ -161,12 +163,14 @@ def load_models():
     musicgen_processor, musicgen_model = None, None
 
     try:
-        tts_processor = SpeechT5Processor.from_pretrained("microsoft/speecht5_tts")
-        tts_model = SpeechT5ForTextToSpeech.from_pretrained("microsoft/speecht5_tts").to(DEVICE)
-        tts_vocoder = SpeechT5HifiGan.from_pretrained("microsoft/speecht5_hifigan").to(DEVICE)
-        speaker_model = pipeline("feature-extraction", model="speechbrain/spkrec-xvect-voxceleb", device=DEVICE)
+        print("Loading Chatterbox TTS model...")
+        tts_model = ChatterboxTTS.from_pretrained(device=DEVICE)
+        tts_processor = tts_model.processor
+        tts_vocoder = None
+        speaker_model = None
+        print("Successfully loaded Chatterbox TTS model.")
     except Exception as e:
-        print(f"Failed to load SpeechT5 TTS models: {e}")
+        print(f"Failed to load Chatterbox TTS model: {e}")
 
     try:
         asr_pipeline = pipeline("automatic-speech-recognition", model="openai/whisper-large-v3-turbo")
@@ -179,7 +183,7 @@ def load_models():
         print(f"Failed to load instrument classifier: {e}")
 
     try:
-        chatbot_pipeline = pipeline("image-text-to-text", model="zai-org/GLM-4.5V-FP8")
+        chatbot_pipeline = pipeline("image-text-to-text", model="Qwen/Qwen2.5-VL-7B-Instruct")
     except Exception as e:
         print(f"Failed to load chatbot pipeline: {e}")
 
@@ -269,37 +273,37 @@ def _transcribe_audio_logic(audio_path, language):
 
 @spaces.GPU(duration=150)
 def _generate_voice_logic(text, reference_audio, format_choice, humanize):
-    if not all([tts_processor, tts_model, tts_vocoder, speaker_model]):
-        raise gr.Error("TTS models are not available.")
+    if not tts_model:
+        raise gr.Error("TTS model is not available.")
     if not text or not reference_audio: 
         raise gr.Error("Please provide text and a reference voice audio.")
 
-    embeddings_dataset = speaker_model(reference_audio, sampling_rate=16000)
-    speaker_embeddings = torch.tensor(embeddings_dataset).unsqueeze(0).to(DEVICE)
-
-    inputs = tts_processor(text=text, return_tensors="pt")
-    spectrogram = tts_model.generate_speech(inputs["input_ids"].to(DEVICE), speaker_embeddings)
-
-    with torch.no_grad():
-        speech = tts_vocoder(spectrogram)
-
-    output_path_stem = get_temp_file_path(f"_generated_{random_string()}").replace(".wav", "")
-    temp_wav_path = str(Path(output_path_stem).with_suffix(".wav"))
-    sf.write(temp_wav_path, speech.cpu().numpy(), samplerate=16000)
-    
-    if humanize:
-        temp_wav_path = _humanize_ai_output(temp_wav_path)
+    try:
+        output_path_stem = get_temp_file_path(f"_generated_{random_string()}").replace(".wav", "")
+        temp_wav_path = str(Path(output_path_stem).with_suffix(".wav"))
         
-    sound = pydub.AudioSegment.from_file(temp_wav_path)
-    final_output_path = export_audio(sound, output_path_stem, format_choice)
-    delete_path(temp_wav_path)
-    return final_output_path
+        tts_model.tts_to_file(
+            text=text,
+            speaker_wav=reference_audio,
+            file_path=temp_wav_path,
+            language="en"
+        )
+
+        if humanize:
+            temp_wav_path = _humanize_ai_output(temp_wav_path)
+            
+        sound = pydub.AudioSegment.from_file(temp_wav_path)
+        final_output_path = export_audio(sound, output_path_stem, format_choice)
+        delete_path(temp_wav_path)
+        return final_output_path
+    except Exception as e:
+        raise gr.Error(f"Generation failed: {e}")
 
 @spaces.GPU(duration=480)
 def _voice_conversion_logic(reference_audio, target_audio, language, format_choice):
     if not reference_audio or not target_audio:
         raise gr.Error("Please upload both a reference voice and a target song.")
-    if not all([tts_processor, tts_model, tts_vocoder, speaker_model]):
+    if not tts_model:
         raise gr.Error("TTS models are not available for voice conversion.")
     
     ref_dir, target_dir = tempfile.mkdtemp(), tempfile.mkdtemp()
@@ -913,7 +917,7 @@ def main():
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(ALL_LANGUAGES.keys()))
     
-    tts_enabled = all([tts_processor, tts_model, tts_vocoder, speaker_model])
+    tts_enabled = all([tts_model])
 
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
