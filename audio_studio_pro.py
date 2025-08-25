@@ -99,12 +99,10 @@ def install_dependencies():
     print("\nInstalling Python packages with pip...")
     dependencies_1 = ["cython"]
     dependencies_2 = [
-        "requests", "accelerate",
-        "git+https://github.com/YaronKoresh/aetherium-qcom.git", "numpy", "httpx", "gradio", 
+        "requests", "accelerate", "numpy", "httpx", "gradio", "compressed-tensors", "sentencepiece",
         "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
         "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
         "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
-        "stegano", "compressed-tensors", "sentencepiece"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
@@ -132,7 +130,6 @@ from PIL import Image, ImageFilter
 from basic_pitch.inference import predict as predict_midi
 from midi2audio import FluidSynth
 import soundfile as sf
-from stegano.wav import hide, reveal
 import librosa
 
 import collections
@@ -140,8 +137,6 @@ import collections.abc
 collections.MutableSequence = collections.abc.MutableSequence
 np.float = np.float64
 import madmom
-
-from aetherium_qcom_platform import encrypt, decrypt
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -796,7 +791,6 @@ def _chatbot_response_logic(message, history):
 * **Spectrum Analyzer:** Creates a visual graph (a spectrogram) of the frequencies in an audio file over time.
 * **Beat Visualizer:** Generates a video where a user-provided image pulses and animates in time with the beat of an audio track.
 * **Lyric Video Creator:** Helps create simple lyric videos by overlaying text onto a background image or video, synchronized with the audio.
-* **Steganography:** A tool to hide a secret text message within an audio file, and to reveal it later with a password.
 * **Support Chat:** That's you! The chatbot for helping users.
 
 Always be ready to answer questions like 'What is Stem Mixing?' or 'How do I use the Vocal Pitch Shifter?' based on the descriptions above."""
@@ -896,36 +890,6 @@ def _autotune_vocals_logic(audio_path, strength, format_choice):
 
     return final_output_path
 
-def _hide_data_in_audio_logic(audio_path, message, password, format_choice):
-    if not audio_path or not message:
-        raise gr.Error("Please provide an audio file and a message to hide.")
-
-    tmp_sound = pydub.AudioSegment.from_file(audio_path)
-    wav_file = get_temp_file_path(".wav")
-    export_audio(tmp_sound, wav_file, "wav")
-
-    output_path = get_temp_file_path(".wav")
-
-    encrypted_message = encrypt(message, password)
-    hide(wav_file, encrypted_message, output_path)
-
-    sound = pydub.AudioSegment.from_file(output_path)
-    output_stem = str(Path(audio_path).with_name(f"{Path(audio_path).stem}_steg"))
-    final_output_path = export_audio(sound, output_stem, format_choice)
-    delete_path(output_path)
-    return final_output_path
-
-def _extract_data_from_audio_logic(audio_path, password):
-    if not audio_path:
-        raise gr.Error("Please provide an audio file to extract data from.")
-    try:
-        message = reveal(audio_path)
-        decrypted_message = encrypt(message, password)
-        return decrypted_message
-
-    except Exception as e:
-        raise gr.Error(f"Failed to extract message. This could be due to an incorrect password or no hidden message. Error: {e}")
-
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
         body_background_fill_dark="#111827", block_background_fill_dark="#1f2937", block_border_width="1px",
@@ -974,7 +938,6 @@ def main():
                 nav_spectrum_btn = gr.Button("Spectrum", variant="secondary", elem_classes="nav-button")
                 nav_beat_vis_btn = gr.Button("Beat Visualizer", variant="secondary", elem_classes="nav-button")
                 nav_lyric_vid_btn = gr.Button("Lyric Video", variant="secondary", elem_classes="nav-button")
-                nav_steganography_btn = gr.Button("Steganography", variant="secondary", elem_classes="nav-button")
                 nav_chatbot_btn = gr.Button("Support Chat", variant="secondary", elem_classes="nav-button")
             with gr.Column(scale=4, elem_id="main-content"):
                 with gr.Group(visible=True, elem_classes="tool-container") as view_master:
@@ -1241,29 +1204,6 @@ def main():
                             load_transcript_btn = gr.Button("Get Lyrics from Audio (via Speech-to-Text)")
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output"); lyric_download_btn = gr.DownloadButton("Download"); lyric_share_links = gr.Markdown()
-                with gr.Group(visible=False, elem_classes="tool-container") as view_steganography:
-                    gr.Markdown("## Steganography")
-                    with gr.Tabs():
-                        with gr.TabItem("Hide Message"):
-                            with gr.Row():
-                                with gr.Column():
-                                    steg_hide_input = gr.Audio(label="Upload Audio Carrier", type='filepath')
-                                    steg_hide_message = gr.Textbox(label="Message to Hide", lines=3)
-                                    steg_hide_password = gr.Textbox(label="Password", type="password")
-                                    steg_hide_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                                    with gr.Row(): steg_hide_btn = gr.Button("Hide Message", variant="primary"); clear_steg_hide_btn = gr.Button("Clear", variant="secondary")
-                                with gr.Column():
-                                    with gr.Group(visible=False) as steg_hide_output_box:
-                                        steg_hide_output = gr.Audio(label="Audio with Hidden Message", interactive=False)
-                                        steg_hide_download_btn = gr.DownloadButton("Download")
-                        with gr.TabItem("Reveal Message"):
-                            with gr.Row():
-                                with gr.Column():
-                                    steg_reveal_input = gr.Audio(label="Upload Audio with Hidden Message", type='filepath')
-                                    steg_reveal_password = gr.Textbox(label="Password (if any)", type="password")
-                                    with gr.Row(): steg_reveal_btn = gr.Button("Reveal Message", variant="primary"); clear_steg_reveal_btn = gr.Button("Clear", variant="secondary")
-                                with gr.Column():
-                                    steg_reveal_output = gr.Textbox(label="Revealed Message", interactive=False, lines=5)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     gr.Markdown("## Support Chat with Fazzer")
                     chatbot_history = gr.Chatbot(label="Audio Studio Pro Support")
@@ -1282,8 +1222,8 @@ def main():
                     )
                     clear_chatbot_btn = gr.Button("Clear Chat")
 
-        nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_conv": nav_voice_conv_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "steganography": nav_steganography_btn, "chatbot": nav_chatbot_btn}
-        views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_conv": view_voice_conv, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "steganography": view_steganography, "chatbot": view_chatbot}
+        nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_conv": nav_voice_conv_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
+        views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_conv": view_voice_conv, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
 
         def switch_view(selected_view):
             view_updates = {view: gr.update(visible=(name == selected_view)) for name, view in views.items()}
@@ -1319,7 +1259,6 @@ def main():
         create_ui_handler(vg_btn, vg_output, vg_output_box, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
         create_ui_handler(vis_btn, vis_output, vis_output_box, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
         create_ui_handler(lyric_btn, lyric_output, lyric_output_box, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
-        create_ui_handler(steg_hide_btn, steg_hide_output, steg_hide_output_box, _hide_data_in_audio_logic, steg_hide_input, steg_hide_message, steg_hide_password, steg_hide_format)
 
         def feedback_ui(audio_path):
             yield {feedback_btn: gr.update(value="Analyzing...", interactive=False), feedback_output: ""}
@@ -1366,16 +1305,6 @@ def main():
                 raise gr.Error(str(e))
         spec_btn.click(spec_ui, [spec_input], [spec_btn, spec_output])
 
-        def steg_reveal_ui(audio_path, password):
-            yield {steg_reveal_btn: gr.update(value="Revealing...", interactive=False), steg_reveal_output: ""}
-            try:
-                message = _extract_data_from_audio_logic(audio_path, password)
-                yield {steg_reveal_btn: gr.update(value="Reveal Message", interactive=True), steg_reveal_output: message}
-            except Exception as e:
-                raise gr.Error(str(e))
-        steg_reveal_btn.click(steg_reveal_ui, [steg_reveal_input, steg_reveal_password], [steg_reveal_btn, steg_reveal_output])
-
-
         chatbot_msg.submit(_chatbot_response_logic, [chatbot_msg, chatbot_history], [chatbot_msg, chatbot_history])
         clear_chatbot_btn.click(lambda: (None, None), None, [chatbot_msg, chatbot_history])
 
@@ -1410,15 +1339,12 @@ def main():
         clear_spec_btn.click(lambda: clear_ui(spec_input, spec_output), [], [spec_input, spec_output])
         clear_vis_btn.click(lambda: clear_ui(vis_image_input, vis_audio_input, vis_output, vis_output_box), [], [vis_image_input, vis_audio_input, vis_output, vis_output_box])
         clear_lyric_btn.click(lambda: {**clear_ui(lyric_audio, lyric_bg, lyric_output, lyric_output_box), **{lyric_text: ""}}, [], [lyric_audio, lyric_bg, lyric_output, lyric_output_box, lyric_text])
-        clear_steg_hide_btn.click(lambda: clear_ui(steg_hide_input, steg_hide_message, steg_hide_password, steg_hide_output, steg_hide_output_box), [], [steg_hide_input, steg_hide_message, steg_hide_password, steg_hide_output, steg_hide_output_box])
-        clear_steg_reveal_btn.click(lambda: clear_ui(steg_reveal_input, steg_reveal_password, steg_reveal_output), [], [steg_reveal_input, steg_reveal_password, steg_reveal_output])
-
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
         def update_share_links(file_obj): return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro!"), visible=bool(file_obj))
 
-        all_outputs = [master_output, extender_output, stem_mixer_output, video_gen_output, speed_output, stem_output, vps_output, vc_output, dj_output, gen_output, vg_output, vis_output, lyric_output, steg_hide_output]
+        all_outputs = [master_output, extender_output, stem_mixer_output, video_gen_output, speed_output, stem_output, vps_output, vc_output, dj_output, gen_output, vg_output, vis_output, lyric_output]
         all_share_links = [master_share_links, extender_share_links, stem_mixer_share_links, video_gen_share_links, speed_share_links, stem_share_links, vps_share_links, vc_share_links, dj_share_links, gen_share_links, vg_share_links, vis_share_links, lyric_share_links, gr.Markdown()]
 
         for out_comp, share_comp in zip(all_outputs, all_share_links):
