@@ -13,6 +13,10 @@ import json
 from urllib.parse import quote
 import ctypes
 from ctypes.util import find_library
+import platform
+import requests
+import zipfile
+import io
 
 os.environ["COQUI_TOS_AGREED"] = "1"
 
@@ -52,6 +56,83 @@ def install_dependencies():
     run_command(f"apt-get install -y  { ' '.join(dependencies_apt) }")
     run_command(f"pip install --force-reinstall { ' '.join(dependencies_1) }")
     run_command(f"pip install --force-reinstall { ' '.join(dependencies_2) }")
+
+def download_and_unzip(url, extract_to):
+    try:
+        print(f"Downloading from {url}...")
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+            print(f"Extracting to {extract_to}...")
+            z.extractall(extract_to)
+        print("Download and extraction successful.")
+        return True
+    except requests.exceptions.RequestException as e:
+        print(f"Error downloading file: {e}")
+    except zipfile.BadZipFile:
+        print("Error: Downloaded file is not a valid zip file.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+    return False
+
+def add_to_path_windows(folder_path):
+    print(f"Adding {folder_path} to user PATH...")
+    command = f'setx PATH "{folder_path};%PATH%"'
+    result = run_command(command)
+    if result == 0:
+        print(f"Successfully added {folder_path} to PATH. Please restart your terminal for changes to take effect.")
+    else:
+        print(f"Failed to add {folder_path} to PATH.")
+
+def install_dependencies():
+    os_name = platform.system()
+    
+    if os_name == "Linux":
+        print("Detected Linux. Installing system dependencies with apt-get...")
+        dependencies_apt = ["rubberband-cli", "fluidsynth", "fluid-soundfont-gm"]
+        run_command("sudo apt-get update -y")
+        run_command(f"sudo apt-get install -y {' '.join(dependencies_apt)}")
+    
+    elif os_name == "Windows":
+        print("Detected Windows. Automating dependency installation...")
+        install_dir = os.path.join(os.path.expanduser("~"), "app_dependencies")
+        os.makedirs(install_dir, exist_ok=True)
+        print(f"Dependencies will be installed in: {install_dir}")
+
+        rubberband_url = "https://breakfastquay.com/files/releases/rubberband-3.3.0-gpl-executable-windows.zip"
+        fluidsynth_url = "https://github.com/FluidSynth/fluidsynth/releases/download/v2.3.5/fluidsynth-2.3.5-win64.zip"
+
+        rubberband_extract_path = os.path.join(install_dir, "rubberband")
+        if download_and_unzip(rubberband_url, rubberband_extract_path):
+            rubberband_bin_path = os.path.join(rubberband_extract_path, os.listdir(rubberband_extract_path)[0])
+            add_to_path_windows(rubberband_bin_path)
+
+        fluidsynth_extract_path = os.path.join(install_dir, "fluidsynth")
+        if download_and_unzip(fluidsynth_url, fluidsynth_extract_path):
+            fluidsynth_bin_path = os.path.join(fluidsynth_extract_path, "bin")
+            add_to_path_windows(fluidsynth_bin_path)
+
+    else:
+        print(f"Unsupported OS: {os_name}. Manual installation of system dependencies may be required.")
+
+    print("\nInstalling Python packages with pip...")
+    dependencies_1 = ["cython"]
+    dependencies_2 = [
+        "requests", # Added for downloading
+        "git+https://github.com/YaronKoresh/aetherium-qcom.git", "numpy", "httpx", "gradio", 
+        "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
+        "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
+        "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
+        "stegano", "git+https://github.com/coqui-ai/TTS@dbf1a08a0d4e47fdad6172e433eeb34bc6b13b4e", 
+        "compressed-tensors"
+    ]
+    
+    pip_executable = f'"{sys.executable}" -m pip'
+    run_command(f"{pip_executable} install --upgrade pip")
+    run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies_1)}")
+    run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies_2)}")
+    
+    print("\nDependency installation process finished.")
 
 install_dependencies()
 
