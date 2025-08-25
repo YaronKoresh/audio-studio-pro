@@ -980,7 +980,7 @@ def main():
                                     with gr.Row(): a2m_btn = gr.Button("Convert to MIDI", variant="primary"); clear_a2m_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as a2m_output_box:
-                                        a2m_output = gr.File(label="Output MIDI", interactive=False, show_download_button=True)
+                                        a2m_output = gr.File(label="Output MIDI", interactive=False)
                         with gr.TabItem("MIDI to Audio"):
                             with gr.Row():
                                 with gr.Column():
@@ -1164,7 +1164,7 @@ def main():
                             with gr.Row(): stt_btn = gr.Button("Transcribe Audio", variant="primary", interactive=asr_pipeline is not None); clear_stt_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             stt_output = gr.Textbox(label="Transcription Result", interactive=False, lines=10)
-                            stt_file_output = gr.File(label="Download Transcript", interactive=False, visible=False, show_download_button=True)
+                            stt_file_output = gr.File(label="Download Transcript", interactive=False, visible=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_spectrum:
                     gr.Markdown("## Spectrum Analyzer")
                     spec_input = gr.Audio(label="Upload Audio", type="filepath")
