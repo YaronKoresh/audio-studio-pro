@@ -910,6 +910,8 @@ def main():
         .tool-container { padding: 30px !important; background: none !important; border: none !important; }
         .tool-container h2 { margin-bottom: 2em !important; text-align: center !important; }
         .tool-container .styler { background: none !important; }
+        .tool-container .row { column-gap: 1em !important; }
+        .tool-container .column { width: 100%; }
         .tool-container .column:not(:has(*)), .tool-container .column:not(:has(:not(div,span))) { display: none !important; }
         .nav-button:hover { border-color: #6366f1 !important; transform: scale(1.02); background: #374151 !important; }
         #header { text-align: center; padding: 25px; margin-bottom: 20px; }
@@ -1237,33 +1239,33 @@ def main():
 
         for name, btn in nav_buttons.items(): btn.click(fn=lambda view=name: switch_view(view), inputs=None, outputs=list(views.values()) + list(nav_buttons.values()))
 
-        def create_ui_handler(btn, out_el, out_box, logic_func, *inputs):
+        def create_ui_handler(btn, out_el, out_box, out_share, logic_func, *inputs):
             def ui_handler_generator(*args):
-                yield gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None)
+                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None), gr.update(visible=False)) # Add gr.update(visible=False) for share links
                 try:
                     result = logic_func(*args)
-                    yield gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result)
+                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(visible=True, value=create_share_links(result, "Check out what I made with Audio Studio Pro!")))
                 except Exception as e:
                     raise gr.Error(str(e))
-            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el] )
+            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
-        create_ui_handler(master_btn, master_output, master_output_box, _master_logic, master_input, master_strength, master_format)
-        create_ui_handler(autotune_btn, autotune_output, autotune_output_box, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
-        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, _audio_to_midi_logic, a2m_input)
-        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, _midi_to_audio_logic, m2a_input, m2a_format)
-        create_ui_handler(enhance_midi_btn, enhance_midi_output, enhance_midi_output_box, _enhance_midi_logic, enhance_midi_input, enhance_midi_format, enhance_midi_humanize)
-        create_ui_handler(extender_btn, extender_output, extender_output_box, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
-        create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
-        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, _generate_video_logic, video_gen_audio, video_gen_prompt, video_gen_format)
-        create_ui_handler(speed_btn, speed_output, speed_output_box, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
-        create_ui_handler(stem_btn, stem_output, stem_output_box, _separate_stems_logic, stem_input, stem_type, stem_format)
-        create_ui_handler(vps_btn, vps_output, vps_output_box, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
-        create_ui_handler(vc_btn, vc_output, vc_output_box, _voice_conversion_logic, vc_ref_audio, vc_target_audio, vc_language, vc_format)
-        create_ui_handler(dj_btn, dj_output, dj_output_box, _auto_dj_mix_logic, dj_files, dj_mix_type, dj_target_bpm, dj_transition, dj_format)
-        create_ui_handler(gen_btn, gen_output, gen_output_box, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
-        create_ui_handler(vg_btn, vg_output, vg_output_box, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
-        create_ui_handler(vis_btn, vis_output, vis_output_box, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
-        create_ui_handler(lyric_btn, lyric_output, lyric_output_box, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
+        create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
+        create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
+        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
+        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
+        create_ui_handler(enhance_midi_btn, enhance_midi_output, enhance_midi_output_box, enhance_midi_share_links, _enhance_midi_logic, enhance_midi_input, enhance_midi_format, enhance_midi_humanize)
+        create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
+        create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_midi_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
+        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_prompt, video_gen_format)
+        create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
+        create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
+        create_ui_handler(vps_btn, vps_output, vps_output_box, vps_share_links, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
+        create_ui_handler(vc_btn, vc_output, vc_output_box, vc_share_links, _voice_conversion_logic, vc_ref_audio, vc_target_audio, vc_language, vc_format)
+        create_ui_handler(dj_btn, dj_output, dj_output_box, dj_share_links, _auto_dj_mix_logic, dj_files, dj_mix_type, dj_target_bpm, dj_transition, dj_format)
+        create_ui_handler(gen_btn, gen_output, gen_output_box, gen_share_links, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
+        create_ui_handler(vg_btn, vg_output, vg_output_box, vg_share_links, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
+        create_ui_handler(vis_btn, vis_output, vis_output_box, vis_share_links, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
+        create_ui_handler(lyric_btn, lyric_output, lyric_output_box, lyric_share_links, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
 
         def feedback_ui(audio_path):
             yield {feedback_btn: gr.update(value="Analyzing...", interactive=False), feedback_output: ""}
@@ -1347,13 +1349,8 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-        def update_share_links(file_obj): return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro!"), visible=bool(file_obj))
-
-        all_outputs = [master_output, extender_output, stem_mixer_output, video_gen_output, speed_output, stem_output, vps_output, vc_output, dj_output, gen_output, vg_output, vis_output, lyric_output]
-        all_share_links = [master_share_links, extender_share_links, stem_mixer_share_links, video_gen_share_links, speed_share_links, stem_share_links, vps_share_links, vc_share_links, dj_share_links, gen_share_links, vg_share_links, vis_share_links, lyric_share_links, gr.Markdown()]
-
-        for out_comp, share_comp in zip(all_outputs, all_share_links):
-            out_comp.change(update_share_links, [out_comp], [share_comp])
+        def update_share_links(file_obj):
+            return gr.update(value=create_share_links(getattr(file_obj, 'url', None), "Check out what I made with Audio Studio Pro!"), visible=bool(file_obj))
 
         stt_output.change(save_text_to_file, [stt_output], [stt_download_btn])
 
