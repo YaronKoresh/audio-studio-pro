@@ -106,7 +106,7 @@ def install_dependencies():
         "chatterbox-tts"
     ]
     
-    run_command(f"{sys.executable}" -m pip install --upgrade pip")
+    run_command(f"{sys.executable} -m pip install --upgrade pip")
     run_command(f"pip install --force-reinstall {' '.join(dependencies_1)}")
     run_command(f"pip install --force-reinstall {' '.join(dependencies_2)}")
     
