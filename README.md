@@ -16,8 +16,6 @@ Audio Studio Pro is a comprehensive, AI-powered application for professional aud
 
 * **Analysis & Visualization:** Get track feedback, identify instruments, analyze BPM/key, and create spectrograms or beat-synced videos.
 
-* **Steganography:** Hide and reveal secret messages within audio files.
-
 * **Support Chat:** Get help from Fazzer, the AI assistant.
 
 ## 🚀 Getting Started
