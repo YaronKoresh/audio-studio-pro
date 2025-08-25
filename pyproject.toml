@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "audio_studio_pro"
+version = "1.0.0"
+authors = [
+  { name="Yaron Koresh", email="aharonkoresh1@gmail.com" },
+]
+description = ""
+readme = "README.md"
+requires-python = ">=3.7"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = []
+
+[project.urls]
+"Homepage" = "https://github.com/YaronKoresh/audio-studio-pro"
+"Bug Tracker" = "https://github.com/YaronKoresh/audio-studio-pro/issues"
+
+[project.scripts]
+audio-studio-pro = "audio_studio_pro:main"
+
+[tool.setuptools]
+py-modules = ["audio_studio_pro"]
