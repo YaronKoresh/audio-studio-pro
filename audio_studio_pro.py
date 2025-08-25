@@ -177,7 +177,7 @@ def load_models():
         print(f"Failed to load instrument classifier: {e}")
         instrument_classifier = None
     try:
-        chatbot_pipeline = pipeline("text-generation", model="zai-org/GLM-4.5V-FP8")
+        chatbot_pipeline = pipeline("image-text-to-text", model="zai-org/GLM-4.5V-FP8")
     except Exception as e:
         print(f"Failed to load chatbot pipeline: {e}")
         chatbot_pipeline = None
@@ -624,20 +624,20 @@ def _get_feedback_logic(audio_path):
         act = madmom.features.beats.RNNBeatProcessor()(audio_path)
         tempo = np.median(60 / np.diff(proc(act)))
 
-        feedback = "### ðŸŽµ AI Track Feedback\n\n"
-        feedback += "#### âœ… Pros\n"
+        feedback = "### AI Track Feedback\n\n"
+        feedback += "#### Pros\n"
         if np.mean(rms) > 0.1:
             feedback += "- **Good Dynamics:** The track has a solid overall volume and dynamic range.\n"
         else:
             feedback += "- **Subtle Dynamics:** The track maintains a consistent, though quiet, dynamic level.\n"
         if np.mean(spectral_contrast) > 20:
              feedback += "- **Clear Frequencies:** The frequency spectrum is well-defined, suggesting good separation between instruments.\n"
-        feedback += "\n#### âŒ Cons\n"
+        feedback += "\n#### Cons\n"
         if np.mean(rms) < 0.05:
             feedback += "- **Low Volume:** The overall volume of the track is quite low.\n"
         if np.std(rms) < 0.02:
             feedback += "- **Lack of Dynamic Variation:** The track feels a bit flat dynamically. There isn't much variation between loud and soft parts.\n"
-        feedback += "\n#### ðŸ’¡ Advice\n"
+        feedback += "\n#### Advice\n"
         if np.mean(rms) < 0.05:
             feedback += "- **Mastering:** Consider applying some compression and a limiter to increase the overall loudness and presence of the track.\n"
         if np.mean(spectral_contrast) < 18:
@@ -703,7 +703,7 @@ def _identify_instruments_logic(audio_path):
         "cello", "clarinet", "synthesizer", "organ", "accordion", "banjo", "harp", "voice", "speech"
     ]
 
-    detected_instruments = "### ðŸŽ¹ Detected Instruments\n\n"
+    detected_instruments = "### Detected Instruments\n\n"
     found = False
     for p in predictions:
         label = p['label'].lower()
@@ -919,28 +919,28 @@ def main():
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
             with gr.Column(scale=1, elem_id="sidebar"):
-                nav_master_btn = gr.Button("âœ¨ Mastering", variant="primary", elem_classes="nav-button")
-                nav_autotune_btn = gr.Button("ðŸŽ¤ Vocal Auto-Tune", variant="secondary", elem_classes="nav-button")
-                nav_midi_tools_btn = gr.Button("ðŸŽ¹ MIDI Tools", variant="secondary", elem_classes="nav-button")
-                nav_audio_extender_btn = gr.Button("â†”ï¸ Audio Extender", variant="secondary", elem_classes="nav-button")
-                nav_stem_mixer_btn = gr.Button("ðŸŽšï¸ Stem Mixer", variant="secondary", elem_classes="nav-button")
-                nav_feedback_btn = gr.Button("ðŸ¤” Track Feedback", variant="secondary", elem_classes="nav-button")
-                nav_instrument_id_btn = gr.Button("ðŸŽ¹ Instrument ID", variant="secondary", elem_classes="nav-button")
-                nav_video_gen_btn = gr.Button("ðŸ“¹ AI Video Gen", variant="secondary", elem_classes="nav-button")
-                nav_speed_btn = gr.Button("â±ï¸ Speed & Pitch", variant="secondary", elem_classes="nav-button")
-                nav_stem_btn = gr.Button("ðŸŽ¤ Stem Separation", variant="secondary", elem_classes="nav-button")
-                nav_vps_btn = gr.Button("ðŸ‘¤ Vocal Pitch Shifter", variant="secondary", elem_classes="nav-button")
-                nav_voice_conv_btn = gr.Button("ðŸ”„ Voice Conversion", variant="secondary", elem_classes="nav-button")
-                nav_dj_btn = gr.Button("ðŸŽ¶ DJ AutoMix", variant="secondary", elem_classes="nav-button")
-                nav_music_gen_btn = gr.Button("ðŸŽ¼ AI Music Gen", variant="secondary", elem_classes="nav-button")
-                nav_voice_gen_btn = gr.Button("ðŸ—£ï¸ AI Voice Gen", variant="secondary", elem_classes="nav-button")
-                nav_analysis_btn = gr.Button("ðŸ“ˆ Analysis", variant="secondary", elem_classes="nav-button")
-                nav_stt_btn = gr.Button("ðŸ“ Speech-to-Text", variant="secondary", elem_classes="nav-button")
-                nav_spectrum_btn = gr.Button("ðŸ“Š Spectrum", variant="secondary", elem_classes="nav-button")
-                nav_beat_vis_btn = gr.Button("ðŸ–¼ï¸ Beat Visualizer", variant="secondary", elem_classes="nav-button")
-                nav_lyric_vid_btn = gr.Button("ðŸŽ¬ Lyric Video", variant="secondary", elem_classes="nav-button")
-                nav_steganography_btn = gr.Button("ðŸ”’ Steganography", variant="secondary", elem_classes="nav-button")
-                nav_chatbot_btn = gr.Button("ðŸ’¬ Support Chat", variant="secondary", elem_classes="nav-button")
+                nav_master_btn = gr.Button("Mastering", variant="primary", elem_classes="nav-button")
+                nav_autotune_btn = gr.Button("Vocal Auto-Tune", variant="secondary", elem_classes="nav-button")
+                nav_midi_tools_btn = gr.Button("MIDI Tools", variant="secondary", elem_classes="nav-button")
+                nav_audio_extender_btn = gr.Button("Audio Extender", variant="secondary", elem_classes="nav-button")
+                nav_stem_mixer_btn = gr.Button("Stem Mixer", variant="secondary", elem_classes="nav-button")
+                nav_feedback_btn = gr.Button("Track Feedback", variant="secondary", elem_classes="nav-button")
+                nav_instrument_id_btn = gr.Button("Instrument ID", variant="secondary", elem_classes="nav-button")
+                nav_video_gen_btn = gr.Button("AI Video Gen", variant="secondary", elem_classes="nav-button")
+                nav_speed_btn = gr.Button("Speed & Pitch", variant="secondary", elem_classes="nav-button")
+                nav_stem_btn = gr.Button("Stem Separation", variant="secondary", elem_classes="nav-button")
+                nav_vps_btn = gr.Button("Vocal Pitch Shifter", variant="secondary", elem_classes="nav-button")
+                nav_voice_conv_btn = gr.Button("Voice Conversion", variant="secondary", elem_classes="nav-button")
+                nav_dj_btn = gr.Button("DJ AutoMix", variant="secondary", elem_classes="nav-button")
+                nav_music_gen_btn = gr.Button("AI Music Gen", variant="secondary", elem_classes="nav-button")
+                nav_voice_gen_btn = gr.Button("AI Voice Gen", variant="secondary", elem_classes="nav-button")
+                nav_analysis_btn = gr.Button("Analysis", variant="secondary", elem_classes="nav-button")
+                nav_stt_btn = gr.Button("Speech-to-Text", variant="secondary", elem_classes="nav-button")
+                nav_spectrum_btn = gr.Button("Spectrum", variant="secondary", elem_classes="nav-button")
+                nav_beat_vis_btn = gr.Button("Beat Visualizer", variant="secondary", elem_classes="nav-button")
+                nav_lyric_vid_btn = gr.Button("Lyric Video", variant="secondary", elem_classes="nav-button")
+                nav_steganography_btn = gr.Button("Steganography", variant="secondary", elem_classes="nav-button")
+                nav_chatbot_btn = gr.Button("Support Chat", variant="secondary", elem_classes="nav-button")
             with gr.Column(scale=4, elem_id="main-content"):
                 with gr.Group(visible=True, elem_classes="tool-container") as view_master:
                     gr.Markdown("## Mastering")
@@ -1128,7 +1128,7 @@ def main():
                                 dj_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_music_gen:
                     gr.Markdown("## AI Music Generation")
-                    if DEVICE == "cpu": gr.Markdown("<p style='color:orange;text-align:center;'>âš ï¸ Running on a CPU. Music generation will be very slow.</p>")
+                    if DEVICE == "cpu": gr.Markdown("<p style='color:orange;text-align:center;'>Running on a CPU. Music generation will be very slow.</p>")
                     with gr.Row():
                         with gr.Column():
                             gen_prompt = gr.Textbox(lines=4, label="Music Prompt", placeholder="e.g., '80s synthwave, retro, upbeat'")
@@ -1143,7 +1143,7 @@ def main():
                                 gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_gen:
                     gr.Markdown("## AI Voice Generation")
-                    if tts_model is None: gr.Markdown("<p style='color:red;text-align:center;'>âŒ Voice Generation model failed to load and is disabled.</p>")
+                    if tts_model is None: gr.Markdown("<p style='color:red;text-align:center;'>Voice Generation model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
                             vg_ref = gr.Audio(label="Reference Voice (Clear, 5-15s)", type='filepath')
@@ -1169,7 +1169,7 @@ def main():
                             analysis_bpm_key_output = gr.Textbox(label="Detected Key & BPM", interactive=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stt:
                     gr.Markdown("## Speech-to-Text")
-                    if asr_pipeline is None: gr.Markdown("<p style='color:red;text-align:center;'>âŒ Speech recognition model failed to load and is disabled.</p>")
+                    if asr_pipeline is None: gr.Markdown("<p style='color:red;text-align:center;'>Speech recognition model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
                             stt_input = gr.Audio(label="Upload Speech Audio", type="filepath")
@@ -1184,7 +1184,7 @@ def main():
                     with gr.Row(): spec_btn = gr.Button("Generate Spectrum", variant="primary"); clear_spec_btn = gr.Button("Clear", variant="secondary")
                     spec_output = gr.Image(label="Spectrum Plot", interactive=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_beat_vis:
-                    gr.Markdown("## ðŸ–¼ï¸ Beat Visualizer")
+                    gr.Markdown("## Beat Visualizer")
                     with gr.Row():
                         with gr.Column():
                             vis_image_input = gr.Image(label="Upload Image", type="filepath"); vis_audio_input = gr.Audio(label="Upload Audio", type="filepath")
