@@ -104,8 +104,7 @@ def install_dependencies():
         "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
         "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
         "pillow", "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
-        "stegano", "git+https://github.com/coqui-ai/TTS@dbf1a08a0d4e47fdad6172e433eeb34bc6b13b4e", 
-        "compressed-tensors"
+        "stegano", "git+https://github.com/YaronKoresh/TTS.git", "compressed-tensors"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
@@ -1398,4 +1397,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
