@@ -38,25 +38,6 @@ def run_command(command):
         print(f"An exception occurred while running command: {command}\n{e}")
         return False
 
-def install_dependencies():
-    dependencies_apt = [
-        "rubberband-cli", "fluidsynth", "fluid-soundfont-gm"
-    ]
-    dependencies_1 = [
-        "cython"
-    ]
-    dependencies_2 = [
-        "git+https://github.com/YaronKoresh/aetherium-qcom.git", "numpy", "httpx", "gradio", "spaces", "matchering", "librosa",
-        "pydub", "googledrivedownloader", "torch", "torchvision", "torchaudio",
-        "basic-pitch", "midi2audio", "imageio", "moviepy", "pillow",
-        "demucs", "matplotlib", "transformers", "scipy", "soundfile", "madmom",
-        "stegano", "git+https://github.com/coqui-ai/TTS@dbf1a08a0d4e47fdad6172e433eeb34bc6b13b4e", "compressed-tensors"
-    ]
-    run_command(f"apt-get update -y")
-    run_command(f"apt-get install -y  { ' '.join(dependencies_apt) }")
-    run_command(f"pip install --force-reinstall { ' '.join(dependencies_1) }")
-    run_command(f"pip install --force-reinstall { ' '.join(dependencies_2) }")
-
 def download_and_unzip(url, extract_to):
     try:
         print(f"Downloading from {url}...")
@@ -118,7 +99,7 @@ def install_dependencies():
     print("\nInstalling Python packages with pip...")
     dependencies_1 = ["cython"]
     dependencies_2 = [
-        "requests", # Added for downloading
+        "requests", "accelerate",
         "git+https://github.com/YaronKoresh/aetherium-qcom.git", "numpy", "httpx", "gradio", 
         "spaces", "matchering", "librosa", "pydub", "googledrivedownloader", "torch", 
         "torchvision", "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
@@ -936,7 +917,7 @@ def main():
     language_choices = sorted(list(ALL_LANGUAGES.keys()))
 
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
-        gr.HTML("""<div id="header"><h1>ðŸŽµ Audio Studio Pro ðŸŽµ</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
+        gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
             with gr.Column(scale=1, elem_id="sidebar"):
                 nav_master_btn = gr.Button("âœ¨ Mastering", variant="primary", elem_classes="nav-button")
@@ -963,7 +944,7 @@ def main():
                 nav_chatbot_btn = gr.Button("ðŸ’¬ Support Chat", variant="secondary", elem_classes="nav-button")
             with gr.Column(scale=4, elem_id="main-content"):
                 with gr.Group(visible=True, elem_classes="tool-container") as view_master:
-                    gr.Markdown("## âœ¨ Mastering")
+                    gr.Markdown("## Mastering")
                     with gr.Row():
                         with gr.Column():
                             master_input = gr.Audio(label="Upload Track", type='filepath')
@@ -976,7 +957,7 @@ def main():
                                 master_download_btn = gr.DownloadButton("Download")
                                 master_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_autotune:
-                    gr.Markdown("## ðŸŽ¤ Vocal Auto-Tune")
+                    gr.Markdown("## Vocal Auto-Tune")
                     with gr.Row():
                         with gr.Column():
                             autotune_input = gr.Audio(label="Upload Full Song", type='filepath')
@@ -989,7 +970,7 @@ def main():
                                 autotune_download_btn = gr.DownloadButton("Download")
                                 autotune_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_midi_tools:
-                    gr.Markdown("## ðŸŽ¹ MIDI Tools")
+                    gr.Markdown("## MIDI Tools")
                     with gr.Tabs():
                         with gr.TabItem("Audio to MIDI"):
                             with gr.Row():
@@ -1022,7 +1003,7 @@ def main():
                                         enhance_midi_output = gr.Audio(label="Enhanced Audio", interactive=False)
                                         enhance_midi_download_btn = gr.DownloadButton("Download")
                 with gr.Group(visible=False, elem_classes="tool-container") as view_audio_extender:
-                    gr.Markdown("## â†”ï¸ Audio Extender")
+                    gr.Markdown("## Audio Extender")
                     with gr.Row():
                         with gr.Column():
                             extender_input = gr.Audio(label="Upload Audio to Extend", type='filepath')
@@ -1036,7 +1017,7 @@ def main():
                                 extender_download_btn = gr.DownloadButton("Download")
                                 extender_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stem_mixer:
-                    gr.Markdown("## ðŸŽšï¸ Stem Mixer")
+                    gr.Markdown("## Stem Mixer")
                     with gr.Row():
                         with gr.Column():
                             stem_mixer_files = gr.File(label="Upload Stems (Drums, Bass, Vocals, etc.)", file_count="multiple", type="filepath")
@@ -1048,7 +1029,7 @@ def main():
                                 stem_mixer_download_btn = gr.DownloadButton("Download")
                                 stem_mixer_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_feedback:
-                    gr.Markdown("## ðŸ¤” AI Track Feedback")
+                    gr.Markdown("## AI Track Feedback")
                     with gr.Row():
                         with gr.Column():
                             feedback_input = gr.Audio(label="Upload Your Track", type='filepath')
@@ -1056,7 +1037,7 @@ def main():
                         with gr.Column():
                             feedback_output = gr.Markdown(label="Feedback")
                 with gr.Group(visible=False, elem_classes="tool-container") as view_instrument_id:
-                    gr.Markdown("## ðŸŽ¹ Instrument Identification")
+                    gr.Markdown("## Instrument Identification")
                     with gr.Row():
                         with gr.Column():
                             instrument_id_input = gr.Audio(label="Upload Audio", type='filepath')
@@ -1064,7 +1045,7 @@ def main():
                         with gr.Column():
                             instrument_id_output = gr.Markdown(label="Detected Instruments")
                 with gr.Group(visible=False, elem_classes="tool-container") as view_video_gen:
-                    gr.Markdown("## ðŸ“¹ AI Video Generation")
+                    gr.Markdown("## AI Video Generation")
                     with gr.Row():
                         with gr.Column():
                             video_gen_audio = gr.Audio(label="Upload Audio", type='filepath')
@@ -1077,7 +1058,7 @@ def main():
                                 video_gen_download_btn = gr.DownloadButton("Download")
                                 video_gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_speed:
-                    gr.Markdown("## â±ï¸ Speed & Pitch")
+                    gr.Markdown("## Speed & Pitch")
                     with gr.Row():
                         with gr.Column():
                             speed_input = gr.Audio(label="Upload Track", type='filepath')
@@ -1091,7 +1072,7 @@ def main():
                                 speed_download_btn = gr.DownloadButton("Download")
                                 speed_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stem:
-                    gr.Markdown("## ðŸŽ¤ Stem Separation")
+                    gr.Markdown("## Stem Separation")
                     with gr.Row():
                         with gr.Column():
                             stem_input = gr.Audio(label="Upload Full Mix", type='filepath')
@@ -1104,7 +1085,7 @@ def main():
                                 stem_download_btn = gr.DownloadButton("Download")
                                 stem_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_vps:
-                    gr.Markdown("## ðŸ‘¤ Vocal Pitch Shifter")
+                    gr.Markdown("## Vocal Pitch Shifter")
                     with gr.Row():
                         with gr.Column():
                             vps_input = gr.Audio(label="Upload Full Song", type='filepath')
@@ -1117,7 +1098,7 @@ def main():
                                 vps_download_btn = gr.DownloadButton("Download")
                                 vps_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_conv:
-                    gr.Markdown("## ðŸ”„ Voice Conversion")
+                    gr.Markdown("## Voice Conversion")
                     with gr.Row():
                         with gr.Column():
                             vc_ref_audio = gr.Audio(label="Reference Voice Audio (Source Voice)", type='filepath')
@@ -1132,7 +1113,7 @@ def main():
                                 vc_download_btn = gr.DownloadButton("Download")
                                 vc_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_dj:
-                    gr.Markdown("## ðŸŽ¶ DJ AutoMix")
+                    gr.Markdown("## DJ AutoMix")
                     with gr.Row():
                         with gr.Column():
                             dj_files = gr.File(label="Upload Audio Tracks", file_count="multiple", type="filepath")
@@ -1147,7 +1128,7 @@ def main():
                                 dj_download_btn = gr.DownloadButton("Download")
                                 dj_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_music_gen:
-                    gr.Markdown("## ðŸŽ¼ AI Music Generation")
+                    gr.Markdown("## AI Music Generation")
                     if DEVICE == "cpu": gr.Markdown("<p style='color:orange;text-align:center;'>âš ï¸ Running on a CPU. Music generation will be very slow.</p>")
                     with gr.Row():
                         with gr.Column():
@@ -1162,7 +1143,7 @@ def main():
                                 gen_download_btn = gr.DownloadButton("Download")
                                 gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_gen:
-                    gr.Markdown("## ðŸ—£ï¸ AI Voice Generation")
+                    gr.Markdown("## AI Voice Generation")
                     if tts_model is None: gr.Markdown("<p style='color:red;text-align:center;'>âŒ Voice Generation model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
@@ -1180,7 +1161,7 @@ def main():
                                 vg_download_btn = gr.DownloadButton("Download")
                                 vg_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_analysis:
-                    gr.Markdown("## ðŸ“ˆ BPM & Key Analysis")
+                    gr.Markdown("## BPM & Key Analysis")
                     with gr.Row():
                         with gr.Column(scale=1):
                             analysis_input = gr.Audio(label="Upload Audio", type="filepath")
@@ -1188,7 +1169,7 @@ def main():
                         with gr.Column(scale=1):
                             analysis_bpm_key_output = gr.Textbox(label="Detected Key & BPM", interactive=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stt:
-                    gr.Markdown("## ðŸ“ Speech-to-Text")
+                    gr.Markdown("## Speech-to-Text")
                     if asr_pipeline is None: gr.Markdown("<p style='color:red;text-align:center;'>âŒ Speech recognition model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
@@ -1199,7 +1180,7 @@ def main():
                             stt_output = gr.Textbox(label="Transcription Result", interactive=False, lines=10)
                             stt_download_btn = gr.DownloadButton("Download .txt", visible=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_spectrum:
-                    gr.Markdown("## ðŸ“Š Spectrum Analyzer")
+                    gr.Markdown("## Spectrum Analyzer")
                     spec_input = gr.Audio(label="Upload Audio", type="filepath")
                     with gr.Row(): spec_btn = gr.Button("Generate Spectrum", variant="primary"); clear_spec_btn = gr.Button("Clear", variant="secondary")
                     spec_output = gr.Image(label="Spectrum Plot", interactive=False)
@@ -1216,7 +1197,7 @@ def main():
                     with gr.Group(visible=False) as vis_output_box:
                         vis_output = gr.Video(label="Visualizer Output"); vis_download_btn = gr.DownloadButton("Download"); vis_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_lyric_vid:
-                    gr.Markdown("## ðŸŽ¬ Lyric Video Creator")
+                    gr.Markdown("## Lyric Video Creator")
                     with gr.Row():
                         with gr.Column():
                             lyric_audio = gr.Audio(label="Upload Song", type="filepath"); lyric_bg = gr.File(label="Upload Background (Image or Video)", type="filepath")
@@ -1229,7 +1210,7 @@ def main():
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output"); lyric_download_btn = gr.DownloadButton("Download"); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_steganography:
-                    gr.Markdown("## ðŸ”’ Steganography")
+                    gr.Markdown("## Steganography")
                     with gr.Tabs():
                         with gr.TabItem("Hide Message"):
                             with gr.Row():
@@ -1252,7 +1233,7 @@ def main():
                                 with gr.Column():
                                     steg_reveal_output = gr.Textbox(label="Revealed Message", interactive=False, lines=5)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
-                    gr.Markdown("## ðŸ’¬ Support Chat with Fazzer")
+                    gr.Markdown("## Support Chat with Fazzer")
                     chatbot_history = gr.Chatbot(label="Audio Studio Pro Support")
                     chatbot_msg = gr.Textbox(label="Your Message", placeholder="Ask me anything about the app...")
                     gr.Examples(
@@ -1417,3 +1398,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
