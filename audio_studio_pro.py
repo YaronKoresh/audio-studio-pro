@@ -98,7 +98,7 @@ def install_dependencies():
 
     print("\nInstalling Python packages with pip...")
     dependencies = [
-        "cython", "requests", "accelerate", "numpy", "httpx", "gradio", 
+        "requests", "accelerate", "numpy", "httpx", "gradio", 
         "compressed-tensors", "sentencepiece", "spaces", "matchering", 
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision", 
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
@@ -108,6 +108,7 @@ def install_dependencies():
     
     pip_executable = f'"{sys.executable}" -m pip'
     run_command(f"{pip_executable} install --upgrade pip")
+    run_command(f"{pip_executable} install --force-reinstall cython")
     run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies)}")
     
     print("\nDependency installation process finished.")
