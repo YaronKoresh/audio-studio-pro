@@ -8,7 +8,7 @@ version = "1.0.0"
 authors = [
   { name="Yaron Koresh", email="aharonkoresh1@gmail.com" },
 ]
-description = ""
+description = "Audio Studio Pro is a comprehensive, AI-powered application for professional audio production."
 readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "MIT" }
