@@ -102,13 +102,13 @@ def install_dependencies():
         "compressed-tensors", "sentencepiece", "spaces", "matchering", 
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision", 
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
-        "pillow", "demucs==4.0.0", "matplotlib", "transformers", "scipy", 
+        "pillow", "demucs==4.0.0", "matplotlib", "transformers==4.55.4", "scipy", 
         "soundfile", "madmom", "chatterbox-tts"
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
     run_command(f"{pip_executable} install --upgrade pip")
-    run_command(f"{pip_executable} install --force-reinstall cython")
+    run_command(f"{pip_executable} install --force-reinstall peft cython")
     run_command(f"{pip_executable} install --force-reinstall {' '.join(dependencies)}")
     
     print("\nDependency installation process finished.")
@@ -165,9 +165,6 @@ def load_models():
     try:
         print("Loading Chatterbox TTS model...")
         tts_model = ChatterboxTTS.from_pretrained(device=DEVICE)
-        tts_processor = tts_model.processor
-        tts_vocoder = None
-        speaker_model = None
         print("Successfully loaded Chatterbox TTS model.")
     except Exception as e:
         print(f"Failed to load Chatterbox TTS model: {e}")
@@ -193,11 +190,9 @@ def load_models():
     except Exception as e:
         print(f"Failed to load MusicGen model: {e}")
 
-    return (tts_processor, tts_model, tts_vocoder, speaker_model, asr_pipeline, 
-            instrument_classifier, chatbot_pipeline, musicgen_processor, musicgen_model)
+    return (tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, musicgen_processor, musicgen_model)
 
-(tts_processor, tts_model, tts_vocoder, speaker_model, asr_pipeline, 
- instrument_classifier, chatbot_pipeline, processor, generation_model) = load_models()
+(tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, processor, generation_model) = load_models()
 
 ALL_LANGUAGES = {
     "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it",
