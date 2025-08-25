@@ -138,6 +138,7 @@ import librosa
 import collections
 import collections.abc
 collections.MutableSequence = collections.abc.MutableSequence
+np.float = np.float64
 import madmom
 
 from aetherium_qcom_platform import encrypt, decrypt
