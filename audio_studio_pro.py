@@ -103,7 +103,7 @@ def install_dependencies():
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision", 
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy", 
         "pillow", "demucs==4.0.0", "matplotlib", "scipy", 
-        "soundfile", "madmom", "chatterbox-tts"
+        "soundfile", "madmom", "chatterbox-tts", "soundfile",
     ]
     
     pip_executable = f'"{sys.executable}" -m pip'
@@ -134,6 +134,7 @@ from midi2audio import FluidSynth
 import soundfile as sf
 import librosa
 from chatterbox.tts import ChatterboxTTS
+import soundfile as sf
 
 import collections
 import collections.abc
@@ -278,12 +279,13 @@ def _generate_voice_logic(text, reference_audio, format_choice, humanize):
         output_path_stem = get_temp_file_path(f"_generated_{random_string()}").replace(".wav", "")
         temp_wav_path = str(Path(output_path_stem).with_suffix(".wav"))
         
-        tts_model.tts_to_file(
+        wav = tts_model.generate(
             text=text,
             speaker_wav=reference_audio,
-            file_path=temp_wav_path,
             language="en"
         )
+        
+        sf.write(temp_wav_path, wav, 24000)
 
         if humanize:
             temp_wav_path = _humanize_ai_output(temp_wav_path)
