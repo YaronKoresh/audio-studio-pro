@@ -758,7 +758,9 @@ def _chatbot_response_logic(message, history):
         history.append((message, "My AI brain is offline right now, sorry! Please try again later."))
         return "", history
 
-    system_prompt = """You are Fazzer, the official AI assistant for the 'Audio Studio Pro' application. Your personality is friendly, helpful, and enthusiastic about audio production. Your primary goal is to assist users by answering their questions about the application's features and guiding them on how to use the tools.
+    system_prompt = {
+        "role": "system",
+        "content": """You are Fazzer, the official AI assistant for the 'Audio Studio Pro' application. Your personality is friendly, helpful, and enthusiastic about audio production. Your primary goal is to assist users by answering their questions about the application's features and guiding them on how to use the tools.
 
 **Key Information about the project:**
 - The application is called **Audio Studio Pro**.
@@ -795,18 +797,26 @@ def _chatbot_response_logic(message, history):
 * **Support Chat:** That's you! The chatbot for helping users.
 
 Always be ready to answer questions like 'What is Stem Mixing?' or 'How do I use the Vocal Pitch Shifter?' based on the descriptions above."""
+    }
 
-    conversation = CustomConversation(system_prompt)
+    messages = [system_prompt]
     for user_turn, bot_turn in history:
-        conversation.add_user_input(user_turn)
-        conversation.append_response(bot_turn)
-
-    conversation.add_user_input(message)
-    result = chatbot_pipeline(conversation)
+        messages.append({"role": "user", "content": user_turn})
+        messages.append({"role": "assistant", "content": bot_turn})
+    messages.append({"role": "user", "content": message})
+    
     try:
-        response = result.generated_responses[-1]
+        prompt = chatbot_pipeline.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        outputs = chatbot_pipeline(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
+        
+        generated_text = outputs[0]["generated_text"]
+        
+        response = generated_text.split("<|im_end|>")[-2].replace("<|im_start|>assistant\n", "").strip()
+        
     except Exception as e:
-        response = result.generated_responses
+        print(f"Chatbot generation failed: {e}")
+        response = "Sorry, I encountered an error while processing your request."
+
     history.append((message, response))
     return "", history
 
