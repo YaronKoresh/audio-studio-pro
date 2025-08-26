@@ -429,7 +429,7 @@ def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animatio
     def beat_resize_func(t):
         frame_index = min(int(t * sr / 512), len(scales) - 1)
         return scales[frame_index]
-    image_clip = ImageClip(temp_img_path).set_duration(duration)
+    image_clip = ImageClip(temp_img_path).with_duration(duration)
     if animation_style == "Zoom In": image_clip = image_clip.resize(lambda t: 1 + 0.1 * (t / duration))
     elif animation_style == "Zoom Out": image_clip = image_clip.resize(lambda t: 1.1 - 0.1 * (t / duration))
     final_clip = image_clip.resize(lambda t: image_clip.w * beat_resize_func(t) / image_clip.w).set_position(('center', 'center')).set_audio(audio_clip)
@@ -444,7 +444,7 @@ def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_pos
     duration = audio_clip.duration
     if background_path:
         bg_clip_class = ImageClip if background_path.lower().endswith(('.png', '.jpg', '.jpeg')) else VideoFileClip
-        background_clip = bg_clip_class(background_path).set_duration(duration)
+        background_clip = bg_clip_class(background_path).with_duration(duration)
     else: background_clip = ColorClip(size=(1280, 720), color=(0,0,0), duration=duration)
     background_clip = background_clip.resize(width=1280)
     lines = [line for line in lyrics_text.strip().split('\n') if line.strip()]
