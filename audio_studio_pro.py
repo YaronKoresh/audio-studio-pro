@@ -281,8 +281,7 @@ def _generate_voice_logic(text, reference_audio, format_choice, humanize):
         
         wav = tts_model.generate(
             text=text,
-            speaker_wav=reference_audio,
-            language="en"
+            audio_prompt_path=reference_audio
         )
         
         sf.write(temp_wav_path, wav, 24000)
@@ -804,7 +803,10 @@ Always be ready to answer questions like 'What is Stem Mixing?' or 'How do I use
 
     conversation.add_user_input(message)
     result = chatbot_pipeline(conversation)
-    response = result.generated_responses[-1]
+    try:
+        response = result.generated_responses[-1]
+    except Exception as e:
+        response = result.generated_responses
     history.append((message, response))
     return "", history
 
@@ -949,7 +951,7 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             master_input = gr.Audio(label="Upload Track", type='filepath')
-                            master_strength = gr.Slider(1.0, 2.5, 1.5, step=0.1, label="Mastering Strength")
+                            master_strength = gr.Slider(1.0, 2.0, 1.8, step=0.1, label="Mastering Strength")
                             master_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): master_btn = gr.Button("Master Audio", variant="primary"); clear_master_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
