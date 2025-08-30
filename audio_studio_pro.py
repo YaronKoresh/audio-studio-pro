@@ -663,17 +663,60 @@ def _create_spectrum_visualization_logic(audio_path):
     if not audio_path: raise gr.Error("Please upload an audio file.")
     try:
         y, sr = librosa.load(audio_path)
-        D = librosa.amplitude_to_db(np.abs(librosa.stft(y)), ref=np.max)
-        fig, ax = plt.subplots(figsize=(10, 4), facecolor='#1f2937')
+        
+        n_fft = 4096
+        start_sample = (len(y) - n_fft) // 2
+        y_sample = y[start_sample : start_sample + n_fft]
+
+        if len(y_sample) < n_fft:
+            y_sample = np.pad(y_sample, (0, n_fft - len(y_sample)))
+
+        window = np.hanning(len(y_sample))
+        y_windowed = y_sample * window
+        
+        fft_result = np.fft.fft(y_windowed)
+        freqs = np.fft.fftfreq(len(fft_result), 1/sr)
+        
+        mask = freqs >= 0
+        freqs = freqs[mask]
+        
+        magnitude = np.abs(fft_result[mask])
+        db_magnitude = 20 * np.log10(magnitude / np.max(magnitude))
+        
+        audible_mask = freqs > 20
+        if np.any(audible_mask):
+            peak_idx = np.argmax(db_magnitude[audible_mask])
+            peak_freq = freqs[audible_mask][peak_idx]
+            peak_db = db_magnitude[audible_mask][peak_idx]
+        else:
+            peak_freq, peak_db = 0, -90
+
+        fig, ax = plt.subplots(figsize=(10, 5), facecolor='#1f2937')
         ax.set_facecolor('#1f2937')
-        librosa.display.specshow(D, sr=sr, x_axis='time', y_axis='log', ax=ax, cmap='viridis')
-        ax.set_title('Spectrogram', color='white'); ax.set_xlabel('Time (s)', color='white'); ax.set_ylabel('Frequency (Hz)', color='white')
-        ax.tick_params(colors='white')
+        
+        ax.plot(freqs, db_magnitude, color='#7c3aed')
+        ax.set_xscale('log')
+        
+        ax.set_xlim(20, 20000)
+        ax.set_ylim(-90, 0)
+        ax.set_title('Frequency Analysis', color='white')
+        ax.set_xlabel('Frequency (Hz)', color='white')
+        ax.set_ylabel('Amplitude (dB)', color='white')
+        ax.tick_params(colors='white', which='both')
+        ax.grid(True, which="both", ls="-", color='gray', alpha=0.4)
+        
+        peak_text = f'Peak: {peak_freq:.0f} Hz at {peak_db:.1f} dB'
+        ax.axvline(x=peak_freq, color='red', linestyle='-', alpha=0.8)
+        ax.text(0.98, 0.95, peak_text, transform=ax.transAxes, color='white', 
+                ha='right', va='top', bbox=dict(facecolor='#111827', alpha=0.6, edgecolor='none'))
+
         fig.tight_layout()
         temp_path = get_temp_file_path(".png")
         fig.savefig(temp_path, facecolor=fig.get_facecolor())
         plt.close(fig)
+        
         return temp_path
+        
     except Exception as e: raise gr.Error(f"Error creating spectrum: {e}")
 
 @spaces.GPU(duration=180)
