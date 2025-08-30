@@ -125,9 +125,9 @@ def install_dependencies():
         "rvc-python", "huggingface_hub"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
-    run_command(f"{pip_executable} install --upgrade pip")
+    run_command(f"{pip_executable} install --force-reinstall pip==24.0")
     run_command(f"{pip_executable} install --force-reinstall --upgrade cython")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade fairseq")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade git+https://github.com/YaronKoresh/fairseq.git")
     run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
     run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
     print("\nDependency installation process finished.")
