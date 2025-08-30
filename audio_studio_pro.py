@@ -86,7 +86,7 @@ def install_dependencies():
     os.makedirs(install_dir, exist_ok=True)
     if os_name == "Linux":
         print("Detected Linux. Installing system dependencies with apt-get...")
-        dependencies_apt = ["rubberband-cli", "fluidsynth", "fluid-soundfont-gm"]
+        dependencies_apt = ["rubberband-cli", "fluidsynth", "fluid-soundfont-gm", "build-essential"]
         run_command("apt-get update -y")
         run_command(f"apt-get install -y {' '.join(dependencies_apt)}")
     elif os_name == "Windows":
@@ -120,14 +120,11 @@ def install_dependencies():
         "compressed-tensors", "sentencepiece", "spaces", "matchering",
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision",
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy",
-        "pillow", "demucs==4.0.1", "matplotlib", "scipy",
-        "soundfile", "madmom", "chatterbox-tts",
-        "rvc-python", "huggingface_hub"
+        "pillow", "demucs==4.0.1", "matplotlib", "scipy", "soundfile", "madmom",
+        "chatterbox-tts", "rvc-python", "huggingface_hub"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
-    run_command(f"{pip_executable} install --force-reinstall pip==24.0")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade cython")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade git+https://github.com/YaronKoresh/fairseq.git")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade pip setuptools wheel cython git+https://github.com/YaronKoresh/fairseq.git")
     run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
     run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
     print("\nDependency installation process finished.")
