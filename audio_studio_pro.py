@@ -120,7 +120,7 @@ def install_dependencies():
         "compressed-tensors", "sentencepiece", "spaces", "matchering",
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision",
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy",
-        "pillow", "demucs==4.0.1", "matplotlib==1.4.3", "scipy", "soundfile", "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
+        "pillow", "demucs==4.0.1", "matplotlib==3.8.0", "scipy", "soundfile", "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
         "chatterbox-tts", "rvc-python", "huggingface_hub"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
@@ -1524,8 +1524,6 @@ def main():
         create_ui_handler(vis_btn, vis_output, vis_output_box, vis_share_links, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
         create_ui_handler(lyric_btn, lyric_output, lyric_output_box, lyric_share_links, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
         
-        vl_train_btn.click(_train_voice_model_logic, inputs=[vl_model_name, vl_dataset, vl_epochs], outputs=[vl_status, vl_output_file])
-
         def feedback_ui(audio_path):
             yield {feedback_btn: gr.update(value="Analyzing...", interactive=False), feedback_output: ""}
             try:
