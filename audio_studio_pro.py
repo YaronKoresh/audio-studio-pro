@@ -122,7 +122,7 @@ def install_dependencies():
         "numpy==1.26.4",
         "httpx==0.27.0",
         "gradio==4.39.0",
-        "compressed-tensors==2.2.3",
+        "compressed-tensors==0.11.0",
         "sentencepiece==0.2.0",
         "matchering==2.0.3",
         "librosa==0.11.1",
