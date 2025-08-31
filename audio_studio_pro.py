@@ -131,7 +131,7 @@ def install_dependencies():
         "torch==2.3.1",
         "torchvision==0.18.1",
         "torchaudio==2.3.1",
-        "basic-pitch==1.0.1",
+        "basic-pitch==0.4.0",
         "midi2audio==0.1.1",
         "imageio==2.34.2",
         "moviepy==1.0.3",
