@@ -120,11 +120,11 @@ def install_dependencies():
         "compressed-tensors", "sentencepiece", "spaces", "matchering",
         "librosa", "pydub", "googledrivedownloader", "torch", "torchvision",
         "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy",
-        "pillow", "demucs==4.0.1", "matplotlib", "scipy", "soundfile", "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
+        "pillow", "demucs==4.0.1", "matplotlib==1.4.3", "scipy", "soundfile", "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
         "chatterbox-tts", "rvc-python", "huggingface_hub"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
-    run_command(f"{pip_executable} install --force-reinstall --upgrade pip setuptools wheel cython git+https://github.com/YaronKoresh/fairseq.git mido")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade pip cython git+https://github.com/YaronKoresh/fairseq.git mido")
     run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
     run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
     print("\nDependency installation process finished.")
