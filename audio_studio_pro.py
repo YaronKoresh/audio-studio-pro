@@ -124,7 +124,7 @@ def install_dependencies():
         "chatterbox-tts", "rvc-python", "huggingface_hub"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
-    run_command(f"{pip_executable} install --force-reinstall --upgrade pip cython git+https://github.com/YaronKoresh/fairseq.git mido")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade pip cython==3.1.3 git+https://github.com/YaronKoresh/fairseq.git mido==1.3.3")
     run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
     run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
     print("\nDependency installation process finished.")
