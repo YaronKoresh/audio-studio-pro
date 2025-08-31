@@ -125,7 +125,7 @@ def install_dependencies():
         "compressed-tensors==0.11.0",
         "sentencepiece==0.2.0",
         "matchering==2.0.3",
-        "librosa==0.11.1",
+        "librosa==0.11.0",
         "pydub==0.25.1",
         "googledrivedownloader==0.4",
         "torch==2.3.1",
