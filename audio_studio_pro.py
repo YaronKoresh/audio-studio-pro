@@ -116,17 +116,39 @@ def install_dependencies():
         print(f"Unsupported OS: {os_name}. Manual installation of system dependencies may be required.")
     print("\nInstalling Python packages with pip...")
     dependencies = [
-        "peft", "requests", "accelerate", "numpy", "httpx", "gradio",
-        "compressed-tensors", "sentencepiece", "spaces", "matchering",
-        "librosa", "pydub", "googledrivedownloader", "torch", "torchvision",
-        "torchaudio", "basic-pitch", "midi2audio", "imageio", "moviepy",
-        "pillow", "demucs==4.0.1", "matplotlib==3.8.0", "scipy", "soundfile", "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
-        "chatterbox-tts", "rvc-python", "huggingface_hub"
+        "peft==0.11.1",
+        "requests==2.32.3",
+        "accelerate==0.32.1",
+        "numpy==1.26.4",
+        "httpx==0.27.0",
+        "gradio==4.39.0",
+        "compressed-tensors==2.2.3",
+        "sentencepiece==0.2.0",
+        "matchering==2.0.3",
+        "librosa==0.11.1",
+        "pydub==0.25.1",
+        "googledrivedownloader==0.4",
+        "torch==2.3.1",
+        "torchvision==0.18.1",
+        "torchaudio==2.3.1",
+        "basic-pitch==1.0.1",
+        "midi2audio==0.1.1",
+        "imageio==2.34.2",
+        "moviepy==1.0.3",
+        "pillow==10.4.0",
+        "demucs==4.0.1",
+        "matplotlib==3.8.0",
+        "scipy==1.14.0",
+        "soundfile==0.12.1",
+        "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
+        "chatterbox-tts==0.3.3",
+        "rvc-python==0.2.1",
+        "huggingface_hub==0.24.1"
     ]
     pip_executable = f'"{sys.executable}" -m pip'
     run_command(f"{pip_executable} install --force-reinstall --upgrade pip cython==3.1.3 git+https://github.com/YaronKoresh/fairseq.git mido==1.3.3")
     run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade transformers")
+    run_command(f"{pip_executable} install --force-reinstall --upgrade transformers==4.43.3")
     print("\nDependency installation process finished.")
 
 install_dependencies()
