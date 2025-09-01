@@ -17,7 +17,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
-dependencies = []
+dependencies = ["definers[ai,audio,visual] @ git+https://github.com/YaronKoresh/definers.git"]
 
 [project.urls]
 "Homepage" = "https://github.com/YaronKoresh/audio-studio-pro"

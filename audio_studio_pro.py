@@ -1,160 +1,4 @@
-import os
-import sys
-import math
-import subprocess
-import tempfile
-from pathlib import Path
-import time
-import shutil
-import random
-import hashlib
-import string
-import json
-from urllib.parse import quote
-import ctypes
-from ctypes.util import find_library
-import platform
-import requests
-import zipfile
-import io
-import tarfile
-
-os.environ["COQUI_TOS_AGREED"] = "1"
-
-def run_command(command):
-    try:
-        process = subprocess.Popen(
-            command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            shell=True,
-            text=True,
-            encoding='utf-8'
-        )
-        for line in process.stdout:
-            print(line, end='')
-        process.wait()
-        return process.returncode == 0
-    except Exception as e:
-        print(f"An exception occurred while running command: {command}\n{e}")
-        return False
-
-def download_file(url, destination):
-    try:
-        print(f"Downloading from {url} to {destination}...")
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        with open(destination, 'wb') as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        print("Download successful.")
-        return True
-    except Exception as e:
-        print(f"Error downloading file: {e}")
-        return False
-
-def download_and_unzip(url, extract_to):
-    try:
-        print(f"Downloading from {url}...")
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        with zipfile.ZipFile(io.BytesIO(response.content)) as z:
-            print(f"Extracting to {extract_to}...")
-            z.extractall(extract_to)
-        print("Download and extraction successful.")
-        return True
-    except requests.exceptions.RequestException as e:
-        print(f"Error downloading file: {e}")
-    except zipfile.BadZipFile:
-        print("Error: Downloaded file is not a valid zip file.")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-    return False
-
-def add_to_path_windows(folder_path):
-    print(f"Adding {folder_path} to user PATH...")
-    command = f'setx PATH "{folder_path};%PATH%"'
-    result = run_command(command)
-    if result:
-        print(f"Successfully added {folder_path} to PATH. Please restart your terminal for changes to take effect.")
-    else:
-        print(f"Failed to add {folder_path} to PATH.")
-
-def install_dependencies():
-    os_name = platform.system()
-    install_dir = os.path.join(os.path.expanduser("~"), "app_dependencies")
-    os.makedirs(install_dir, exist_ok=True)
-    if os_name == "Linux":
-        print("Detected Linux. Installing system dependencies with apt-get...")
-        dependencies_apt = ["rubberband-cli", "fluidsynth", "fluid-soundfont-gm", "build-essential"]
-        run_command("apt-get update -y")
-        run_command(f"apt-get install -y {' '.join(dependencies_apt)}")
-    elif os_name == "Windows":
-        print("Detected Windows. Automating dependency installation...")
-        print(f"Dependencies will be installed in: {install_dir}")
-        rubberband_url = "https://breakfastquay.com/files/releases/rubberband-3.3.0-gpl-executable-windows.zip"
-        fluidsynth_url = "https://github.com/FluidSynth/fluidsynth/releases/download/v2.3.5/fluidsynth-2.3.5-win64.zip"
-        soundfont_url = "https://github.com/FluidSynth/fluidsynth/raw/master/sf2/FluidR3_GM.sf2"
-        soundfont_path = os.path.join(install_dir, "soundfonts", "FluidR3_GM.sf2")
-        rubberband_extract_path = os.path.join(install_dir, "rubberband")
-        if not any("rubberband" in s for s in os.environ["PATH"]):
-            if download_and_unzip(rubberband_url, rubberband_extract_path):
-                extracted_dirs = [d for d in os.listdir(rubberband_extract_path) if os.path.isdir(os.path.join(rubberband_extract_path, d))]
-                if extracted_dirs:
-                    rubberband_bin_path = os.path.join(rubberband_extract_path, extracted_dirs[0])
-                    add_to_path_windows(rubberband_bin_path)
-        fluidsynth_extract_path = os.path.join(install_dir, "fluidsynth")
-        if not any("fluidsynth" in s for s in os.environ["PATH"]):
-            if download_and_unzip(fluidsynth_url, fluidsynth_extract_path):
-                fluidsynth_bin_path = os.path.join(fluidsynth_extract_path, "bin")
-                add_to_path_windows(fluidsynth_bin_path)
-        if not os.path.exists(soundfont_path):
-            os.makedirs(os.path.dirname(soundfont_path), exist_ok=True)
-            print("Downloading SoundFont for MIDI playback...")
-            download_file(soundfont_url, soundfont_path)
-    else:
-        print(f"Unsupported OS: {os_name}. Manual installation of system dependencies may be required.")
-    print("\nInstalling Python packages with pip...")
-    dependencies = [
-        "peft==0.11.1",
-        "requests==2.32.3",
-        "accelerate==0.32.1",
-        "numpy==1.26.4",
-        "httpx==0.27.0",
-        "gradio==4.39.0",
-        "compressed-tensors==0.11.0",
-        "sentencepiece==0.2.0",
-        "matchering==2.0.3",
-        "librosa==0.11.0",
-        "pydub==0.25.1",
-        "googledrivedownloader==0.4",
-        "torch==2.3.1",
-        "torchvision==0.18.1",
-        "torchaudio==2.3.1",
-        "basic-pitch==0.4.0",
-        "midi2audio==0.1.1",
-        "imageio==2.34.2",
-        "moviepy==1.0.3",
-        "pillow==10.4.0",
-        "demucs==4.0.1",
-        "matplotlib==3.8.0",
-        "scipy==1.14.0",
-        "soundfile==0.12.1",
-        "git+https://github.com/CPJKU/madmom@0551aa8f48d71a367d92b5d3a347a0cf7cd97cc9",
-        "chatterbox-tts==0.3.3",
-        "rvc-python==0.2.1",
-        "huggingface_hub==0.24.1"
-    ]
-    pip_executable = f'"{sys.executable}" -m pip'
-    run_command(f"{pip_executable} install --force-reinstall --upgrade pip cython==3.1.3 git+https://github.com/YaronKoresh/fairseq.git mido==1.3.3")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade {' '.join(dependencies)}")
-    run_command(f"{pip_executable} install --force-reinstall --upgrade transformers==4.43.3")
-    print("\nDependency installation process finished.")
-
-install_dependencies()
-
 import torch
-import numpy as np
 import spaces
 import gradio as gr
 import matplotlib.pyplot as plt
@@ -170,990 +14,191 @@ from PIL import Image, ImageFilter
 from basic_pitch.inference import predict as predict_midi
 from midi2audio import FluidSynth
 import soundfile as sf
-import librosa
-from chatterbox.tts import ChatterboxTTS
-import collections
-import collections.abc
-collections.MutableSequence = collections.abc.MutableSequence
-np.float = np.float64
-np.int = np.int32
 import madmom
-from huggingface_hub import hf_hub_download
-from rvc import RVC, Config
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+from definers import (
+    init_pretrained_model,
+    install_faiss,
+    install_ffmpeg,
+    install_audio_effects,
+    transcribe_audio,
+    generate_voice,
+    cwd,
+    convert_vocal_rvc,
+    train_model_rvc,
+    master,
+    generate_music,
+    dj_mix,
+    beat_visualizer,
+    lyric_video,
+    stretch_audio,
+    get_audio_feedback,
+    generate_video,
+    change_audio_speed,
+    analyze_audio_features,
+    separate_stems,
+    pitch_shift_vocals,
+    create_spectrum_visualization,
+    stem_mixer,
+    identify_instruments,
+    extend_audio,
+    audio_to_midi,
+    midi_to_audio,
+    enhance_midi,
+    autotune_vocals
+)
 
-class CustomConversation:
-    def __init__(self, text=""):
-        self.past_user_inputs = []
-        self.generated_responses = []
-        if text:
-            self.past_user_inputs.append(text)
-    def add_user_input(self, text):
-        self.past_user_inputs.append(text)
-    def append_response(self, response):
-        self.generated_responses.append(response)
+init_pretrained_model("tts")
+init_pretrained_model("svc")
+init_pretrained_model("speech-recognition")
+init_pretrained_model("audio-classification")
+init_pretrained_model("music")
+init_pretrained_model("answer")
+init_pretrained_model("image")
 
-def _download_rvc_models():
-    rvc_models_dir = os.path.join(os.path.expanduser("~"), "app_dependencies", "rvc_models")
-    os.makedirs(rvc_models_dir, exist_ok=True)
-    base_files = {
-        "rmvpe.pt": ("lj1995/VoiceConversionWebUI", "rmvpe.pt"),
-        "hubert_base.pt": ("lj1995/VoiceConversionWebUI", "hubert_base.pt"),
-    }
-    voice_models = {
-        "female_singer.pth": ("Yaron/AudioStudioPro-RVC-Models", "female_singer.pth"),
-        "female_singer.index": ("Yaron/AudioStudioPro-RVC-Models", "female_singer.index"),
-        "male_singer.pth": ("Yaron/AudioStudioPro-RVC-Models", "male_singer.pth"),
-        "male_singer.index": ("Yaron/AudioStudioPro-RVC-Models", "male_singer.index"),
-        "male_rapper.pth": ("Yaron/AudioStudioPro-RVC-Models", "male_rapper.pth"),
-        "male_rapper.index": ("Yaron/AudioStudioPro-RVC-Models", "male_rapper.index"),
-    }
-    files_to_download = {**base_files, **voice_models}
-    for filename, (repo_id, repo_filename) in files_to_download.items():
-        local_path = os.path.join(rvc_models_dir, filename)
-        if not os.path.exists(local_path):
-            print(f"Downloading RVC model: {filename}...")
-            try:
-                cache_dir = os.path.join(rvc_models_dir, "cache")
-                downloaded_path = hf_hub_download(
-                    repo_id=repo_id,
-                    filename=repo_filename,
-                    local_dir=rvc_models_dir,
-                    local_dir_use_symlinks=False,
-                    cache_dir=cache_dir
-                )
-                if downloaded_path != local_path:
-                    shutil.move(downloaded_path, local_path)
-            except Exception as e:
-                print(f"Failed to download {filename}: {e}")
-    cache_path = os.path.join(rvc_models_dir, "cache")
-    if os.path.exists(cache_path):
-        time.sleep(1)
-        shutil.rmtree(cache_path, ignore_errors=True)
-    os.environ['RVC_MODELS_DIR'] = rvc_models_dir
-    print("RVC models are ready.")
+install_faiss()
+install_ffmpeg()
+install_audio_effects()
 
-def load_models():
-    tts_processor, tts_model, tts_vocoder, speaker_model = None, None, None, None
-    asr_pipeline, instrument_classifier, chatbot_pipeline = None, None, None
-    musicgen_processor, musicgen_model = None, None
-    _download_rvc_models()
-    try:
-        print("Loading Chatterbox TTS model...")
-        tts_model = ChatterboxTTS.from_pretrained(device=DEVICE)
-        print("Successfully loaded Chatterbox TTS model.")
-    except Exception as e:
-        print(f"Failed to load Chatterbox TTS model: {e}")
-    try:
-        asr_pipeline = pipeline("automatic-speech-recognition", model="openai/whisper-large-v3")
-    except Exception as e:
-        print(f"Failed to load ASR pipeline: {e}")
-    try:
-        instrument_classifier = pipeline("audio-classification", model="MIT/ast-finetuned-audioset-10-10-0.4593")
-    except Exception as e:
-        print(f"Failed to load instrument classifier: {e}")
-    try:
-        chatbot_pipeline = pipeline("text-generation", model="Qwen/Qwen2-1.5B-Instruct", device=DEVICE)
-    except Exception as e:
-        print(f"Failed to load chatbot pipeline: {e}")
-    try:
-        musicgen_processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
-        musicgen_model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small").to(DEVICE)
-    except Exception as e:
-        print(f"Failed to load MusicGen model: {e}")
-    return (tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, musicgen_processor, musicgen_model)
-
-(tts_model, asr_pipeline, instrument_classifier, chatbot_pipeline, processor, generation_model) = load_models()
-
-ALL_LANGUAGES = {
-    "English": "en", "Spanish": "es", "French": "fr", "German": "de", "Italian": "it",
-    "Portuguese": "pt", "Polish": "pl", "Turkish": "tr", "Russian": "ru", "Dutch": "nl",
-    "Czech": "cs", "Arabic": "ar", "Chinese": "zh", "Japanese": "ja", "Hungarian": "hu",
-    "Korean": "ko", "Hebrew": "he", "Hindi": "hi", "Swedish": "sv", "Greek": "el",
-    "Finnish": "fi", "Vietnamese": "vi", "Ukrainian": "uk", "Romanian": "ro"
-}
-
-def get_temp_file_path(suffix=".wav"):
-    if not suffix.startswith("."): suffix = "." + suffix
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp:
-        return temp.name
-
-def random_string(length=8):
-    return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
-
-def delete_path(path):
-    if not path or not os.path.exists(path): return
-    try:
-        if os.path.isfile(path): os.remove(path)
-        elif os.path.isdir(path): shutil.rmtree(path)
-    except OSError as e:
-        print(f"Error deleting path {path}: {e}")
-
-def export_audio(audio_segment, output_path_stem, format_choice):
-    format_lower = format_choice.lower()
-    if "mp3" in format_lower: file_format, bitrate, suffix = "mp3", "320k", ".mp3"
-    elif "wav" in format_lower: file_format, bitrate, suffix = "wav", None, ".wav"
-    elif "flac" in format_lower: file_format, bitrate, suffix = "flac", None, ".flac"
-    else: raise ValueError(f"Unsupported format: {format_choice}")
-    output_path = Path(output_path_stem).with_suffix(suffix)
-    params = ["-acodec", "pcm_s16le"] if file_format == "wav" else None
-    audio_segment.export(str(output_path), format=format_choice.lower(), bitrate=bitrate, parameters=params)
-    return str(output_path)
-
-def create_share_links(file_url, text_description):
-    if not file_url: return ""
-    encoded_text = quote(text_description)
-    encoded_url = quote(file_url)
-    twitter_link = f"https://twitter.com/intent/tweet?text={encoded_text}&url={encoded_url}"
-    facebook_link = f"https://www.facebook.com/sharer/sharer.php?u={encoded_url}"
-    reddit_link = f"https://www.reddit.com/submit?url={encoded_url}&title={encoded_text}"
-    whatsapp_link = f"https://api.whatsapp.com/send?text={encoded_text}%20{encoded_url}"
-    return f"""<div style='text-align:center; padding-top: 10px;'><p style='font-weight: bold;'>Share your creation!</p><a href='{twitter_link}' target='_blank' style='margin: 0 5px;'>X/Twitter</a> | <a href='{facebook_link}' target='_blank' style='margin: 0 5px;'>Facebook</a> | <a href='{reddit_link}' target='_blank' style='margin: 0 5px;'>Reddit</a> | <a href='{whatsapp_link}' target='_blank' style='margin: 0 5px;'>WhatsApp</a></div>"""
-
-def save_text_to_file(text_content):
-    if not text_content: return None
-    temp_path = get_temp_file_path(".txt")
-    with open(temp_path, "w", encoding="utf-8") as f:
-        f.write(text_content)
-    return temp_path
-
-def _humanize_ai_output(audio_path):
-    try:
-        y, sr = librosa.load(audio_path, sr=None)
-        noise = np.random.randn(len(y))
-        y_noisy = y + 0.0001 * noise
-        y_eq = y_noisy * (1 + 0.01 * np.sin(2 * np.pi * 1000 * np.arange(len(y)) / sr))
-        sf.write(audio_path, y_eq, sr)
-        return audio_path
-    except Exception as e:
-        print(f"Could not humanize AI output: {e}")
-        return audio_path
+set_system_message(
+    name="Fazzer",
+    role="the official AI assistant for the 'Audio Studio Pro' application",
+    tone="concise, clear, friendly, helpful, and encouraging tone about audio production",
+    goals=[
+        'answer users questions',
+        'guide users with the application usage',
+        'explain the purpose of each tool in the application',
+        'provide simple, step-by-step instructions on how to use the features based on their UI',
+    ],
+    chattiness="provide detailed explanations",
+    persona_data={
+        "the name of the software you help with": "Audio Studio Pro",
+        "the name of your creator": "Yaron Koresh",
+        "the origin country of your creator": "Israel",
+        "your name": "Fazzer",
+        "the complete list of the software's features with usage instructions": """
+a mastering tool to automatically enhances a track's loudness and clarity - upload your track, adjust the 'Mastering Strength' slider, choose an output format, and click 'Master Audio';
+a vocal auto-tuning tools that correct the pitch of vocals and aligns them to the beat - upload a full song, set the 'Tuning Strength' (1.0 is maximum), and click 'Auto-Tune Vocals';
+audio to midi converter - upload an audio file and click 'Convert to MIDI';
+midi to audio converter - upload a MIDI file and click 'Convert to Audio';
+AI midi enhancer which takes a simple midi melody and uses AI to generate a fuller musical arrangement - upload a MIDI melody file, choose an output format, choose if to 'Humanize AI Output', and click 'Enhance MIDI';
+an audio extender that uses AI to seamlessly continue a piece of music - upload your audio, use the 'Extend Duration' slider to choose how many seconds to add, and click 'Extend Audio';
+a stem mixer that mixes individual instrument tracks (stems) together - upload multiple audio files (e.g., drums.wav, bass.wav). The tool automatically beatmatches them to the first track and mixes them;
+a track feedbacks generator that provides AI-powered analysis and advice on your mix - upload your track and click 'Get Feedback' for written analysis on its dynamics, stereo width, and frequency balance;
+an instrument identifier from an audio file - upload an audio file and click 'Identify Instruments';
+an AI video generator which creates a simple and abstract music visualizer - upload an audio file and click 'Generate Video' to create a video with a pulsing circle that reacts to the music;
+a speed & pitch changer which changes the playback speed of a track - upload audio, use the 'Speed Factor' slider (e.g., 1.5x is faster), and check 'Preserve Pitch' for a more natural sound;
+a stems separator which splits a song into vocals and instrumental - upload a full song and choose either 'Acapella (Vocals Only)' or 'Karaoke (Instrumental Only)';
+a vocal pitch shifter which changes the pitch of only the vocals in a song - upload a song and use the 'Vocal Pitch Shift' slider to raise or lower the vocal pitch in semitones;
+a RVC based voice lab tool for voice cloning & conversion tool which converts a song using a different AI voice, preserving the melody - ;
+a dj tool which automatically mixes multiple songs together - upload two or more tracks. Choose 'Beatmatched Crossfade' for a smooth, tempo-synced mix and adjust the 'Transition Duration';
+an AI music generator which creates original music from a text description - write a description of the music you want (e.g., 'upbeat synthwave'), set the duration, and click 'Generate Music';
+an AI voice generator which clones a voice to say anything you type - upload a clean 5-15 second 'Reference Voice' sample, type the 'Text to Speak', and click 'Generate Voice';
+a bpm & key analysis tools which detects a track's musical key and tempo - upload your audio and click 'Analyze Audio';
+a speech-to-text tool which transcribes speech from an audio file into text - upload an audio file with speech, select the language, and click 'Transcribe Audio'.
+a spectrum analyzer which creates a visual graph (spectrogram) of an audio's frequencies - upload an audio file and click 'Generate Spectrum'.
+a beat visualizer which creates a video where an image pulses to the music's beat - upload an image and an audio file. Adjust the 'Beat Intensity' slider to control how much the image reacts.
+a lyric video creation tool which creates a simple lyric video - upload a song and a background image/video. Then, paste your lyrics into the text box, with each line representing a new phrase on screen.
+a support chat (that's you!) which answer questions like 'What is Stem Mixing?' or 'How do I use the Vocal Pitch Shifter?' based on his knowledge-base;
+"""
+    },
+    task_rules=[
+        "If you don't know the answer, politely say so. Do not make up features"
+    ],
+    interaction_style="ask clarifying questions before answering if it will make your answer more accurate"
+);
 
 @spaces.GPU(duration=60)
 def _transcribe_audio_logic(audio_path, language):
-    if asr_pipeline is None: raise gr.Error("Speech recognition pipeline is not available.")
-    if not audio_path: raise gr.Error("Please upload an audio file to transcribe.")
-    lang_code = ALL_LANGUAGES.get(language, None)
-    return asr_pipeline(audio_path, generate_kwargs={"language": lang_code}, return_timestamps=True)["text"]
+    return transcribe_audio(audio_path, language)
 
 @spaces.GPU(duration=30)
 def _generate_voice_logic(text, reference_audio, format_choice, humanize):
-    if not tts_model:
-        raise gr.Error("TTS model is not available.")
-    if not text or not reference_audio:
-        raise gr.Error("Please provide text and a reference voice audio.")
-    try:
-        output_path_stem = get_temp_file_path(f"_generated_{random_string()}").replace(".wav", "")
-        temp_wav_path = str(Path(output_path_stem).with_suffix(".wav"))
-        wav = tts_model.generate(
-            text=text,
-            audio_prompt_path=reference_audio
-        )
-        sf.write(temp_wav_path, wav, 24000)
-        if humanize:
-            temp_wav_path = _humanize_ai_output(temp_wav_path)
-        sound = pydub.AudioSegment.from_file(temp_wav_path)
-        final_output_path = export_audio(sound, output_path_stem, format_choice)
-        delete_path(temp_wav_path)
-        return final_output_path
-    except Exception as e:
-        raise gr.Error(f"Generation failed: {e}")
+    return generate_voice(text, reference_audio, format_choice, humanize)
 
-@spaces.GPU(duration=240)
-def _voice_conversion_logic(target_audio, voice_choice, pitch_shift, format_choice, custom_model_pth, custom_model_index):
-    if not target_audio:
-        raise gr.Error("Please upload a target song to convert.")
-    rvc_models_dir = os.environ.get('RVC_MODELS_DIR')
-    if not rvc_models_dir:
-        raise gr.Error("RVC models directory not set. Please restart the application.")
-    model_path = None
-    index_path = None
-    if custom_model_pth and custom_model_pth.name:
-        print("Using user-provided custom RVC model.")
-        model_path = custom_model_pth.name
-        if custom_model_index and custom_model_index.name:
-            index_path = custom_model_index.name
-    else:
-        print("Using pre-made voice from library.")
-        if not voice_choice:
-            raise gr.Error("Please select a voice from the dropdown or upload a custom model.")
-        voice_map = {
-            "Female Pop Singer": "female_singer",
-            "Male Rock Singer": "male_singer",
-            "Male Rapper": "male_rapper",
-        }
-        model_filename = voice_map.get(voice_choice)
-        if not model_filename:
-            raise gr.Error(f"Invalid voice choice: {voice_choice}")
-        model_path = os.path.join(rvc_models_dir, f"{model_filename}.pth")
-        index_path_candidate = os.path.join(rvc_models_dir, f"{model_filename}.index")
-        if os.path.exists(index_path_candidate):
-            index_path = index_path_candidate
-    if not model_path or not os.path.exists(model_path):
-        raise gr.Error(f"Voice model file not found or invalid. Please check your selection or upload.")
-    config = Config(DEVICE, half_precision=True if DEVICE == 'cuda' else False)
-    target_dir = tempfile.mkdtemp()
-    try:
-        print("Separating vocals from the target song...")
-        run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{target_dir}" "{target_audio}"')
-        target_vocals_path = Path(target_dir) / "htdemucs_ft" / Path(target_audio).stem / "vocals.wav"
-        target_instrumental_path = Path(target_dir) / "htdemucs_ft" / Path(target_audio).stem / "no_vocals.wav"
-        if not target_vocals_path.exists() or not target_instrumental_path.exists():
-            raise gr.Error("Failed to separate vocals from the target song.")
-        print(f"Performing voice conversion with model: {Path(model_path).name}...")
-        rvc = RVC(model_path, config=config, index_path=index_path)
-        converted_vocals_path = get_temp_file_path(".wav")
-        rvc.infer(
-            input_path=str(target_vocals_path),
-            output_path=converted_vocals_path,
-            pitch_method='rmvpe', pitch_shift=pitch_shift,
-            index_rate=0.75, filter_radius=3, resample_rate=40000,
-            rms_mix_rate=0.25, protect=0.33
-        )
-        print("Recombining converted vocals with instrumental...")
-        instrumental = pydub.AudioSegment.from_file(str(target_instrumental_path))
-        converted_vocals = pydub.AudioSegment.from_file(converted_vocals_path)
-        if instrumental.channels > converted_vocals.channels:
-            converted_vocals = converted_vocals.set_channels(instrumental.channels)
-        final_vocals = converted_vocals.apply_gain(instrumental.dBFS - converted_vocals.dBFS)
-        combined_audio = instrumental.overlay(final_vocals)
-        output_stem = str(Path(target_audio).with_name(f"{Path(target_audio).stem}_{Path(model_path).stem}"))
-        final_output_path = export_audio(combined_audio, output_stem, format_choice)
-        delete_path(converted_vocals_path)
-        return final_output_path
-    finally:
-        delete_path(target_dir)
+@spaces.GPU(duration=50)
+def handle_conversion(experiment,inp,ptch):
+    with cwd():
+        return convert_vocal_rvc(experiment,inp,ptch)
 
-@spaces.GPU(duration=300)
-def _train_voice_model_logic(model_name, dataset_zip, quality_choice):
-    if not model_name:
-        raise gr.Error("Please provide a name for your voice model.")
-    if not dataset_zip:
-        raise gr.Error("Please upload a dataset (zip file) of clean vocals.")
-
-    quality_to_epochs = {
-        "Quick Test (Lowest Quality)": 10,
-        "Standard Quality (Recommended)": 20,
-        "Best Quality (Slowest)": 30
-    }
-    epochs = quality_to_epochs.get(quality_choice)
-    if not epochs:
-        raise gr.Error("Invalid quality selection.")
-
-    model_name = "".join(c for c in model_name if c.isalnum() or c in ('_', '-')).rstrip()
-    if not model_name:
-        raise gr.Error("Invalid model name. Use letters, numbers, and underscores.")
-    train_dir = tempfile.mkdtemp()
-    yield f"✅ Created temporary training directory at: {train_dir}", None
-    try:
-        dataset_dir = os.path.join(train_dir, "dataset")
-        os.makedirs(dataset_dir, exist_ok=True)
-        with zipfile.ZipFile(dataset_zip.name, 'r') as z:
-            z.extractall(dataset_dir)
-        yield f"✅ Unzipped dataset ({len(os.listdir(dataset_dir))} files)...", None
-        yield "⏳ Preprocessing audio data (resampling, feature extraction)... This may take a while.", None
-        rvc = RVC(config=Config())
-        rvc.preprocess(dataset_dir)
-        yield "✅ Preprocessing complete.", None
-        yield f"⏳ Starting model training for {epochs} epochs... Please be patient.", None
-        rvc.train(model_name, num_epochs=epochs)
-        yield f"✅ Training complete. Model saved as {model_name}.pth.", None
-        yield "⏳ Building FAISS index for faster inference...", None
-        rvc.build_index(model_name)
-        yield "✅ Index file built successfully.", None
-        rvc_models_dir = os.environ.get('RVC_MODELS_DIR')
-        model_pth_path = os.path.join(rvc_models_dir, f"{model_name}.pth")
-        model_index_path = os.path.join(rvc_models_dir, "logs", model_name, f"added_{model_name}.index")
-        final_zip_path = os.path.join(train_dir, f"{model_name}_RVC_Model.zip")
-        with zipfile.ZipFile(final_zip_path, 'w') as zf:
-            zf.write(model_pth_path, arcname=f"{model_name}.pth")
-            if os.path.exists(model_index_path):
-                zf.write(model_index_path, arcname=f"{model_name}.index")
-        yield f"🎉 Success! Your voice model is ready for download.", final_zip_path
-    except Exception as e:
-        yield f"❌ An error occurred: {e}", None
-        raise gr.Error(f"Training failed. Please check the logs. Error: {e}")
-    finally:
-        delete_path(train_dir)
+@spaces.GPU(duration=350)
+def handle_training(experiment,inp,lvl):
+    with cwd():
+        return train_model_rvc(experiment,inp,lvl), lvl+1
 
 def _master_logic(source_path, strength, format_choice):
-    if not source_path: raise gr.Error("Please upload a track to master.")
-    output_stem = Path(source_path).with_name(f"{Path(source_path).stem}_mastered")
-    try:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            reference_path = Path(temp_dir) / "reference.wav"
-            download_file_from_google_drive(file_id="1UF_FIuq4vbCdDfCVLHvD_9fXzJDoredh", dest_path=str(reference_path), unzip=False)
-            def _master(current_source_path):
-                result_wav_path = get_temp_file_path(".wav")
-                mg.process(target=str(current_source_path), reference=str(reference_path), results=[mg.pcm24(str(result_wav_path))], config=mg.Config(max_length=15*60, threshold=0.99/strength, internal_sample_rate=44100))
-                if "tmp" in str(current_source_path): delete_path(current_source_path)
-                return result_wav_path
-            processed_path = source_path
-            for _ in range(math.floor(strength)): processed_path = _master(processed_path)
-            final_sound = pydub.AudioSegment.from_file(processed_path) + (strength - 1.0) * 6
-            output_path = export_audio(final_sound, output_stem, format_choice)
-            delete_path(processed_path)
-            return output_path
-    except Exception as e: raise gr.Error(f"Mastering failed: {e}")
+    return master(source_path, strength, format_choice)
 
 @spaces.GPU(duration=60)
 def _generate_music_logic(prompt, duration_s, format_choice, humanize):
-    if generation_model is None or processor is None: raise gr.Error("MusicGen model is not available.")
-    if not prompt: raise gr.Error("Please provide a prompt for music generation.")
-    inputs = processor(text=[prompt], padding=True, return_tensors="pt").to(DEVICE)
-    max_new_tokens = int(duration_s * 50)
-    audio_values = generation_model.generate(**inputs, do_sample=True, guidance_scale=3, max_new_tokens=max_new_tokens)
-    sampling_rate = generation_model.config.audio_encoder.sampling_rate
-    wav_output = audio_values[0, 0].cpu().numpy()
-    temp_wav_path = get_temp_file_path(".wav")
-    write_wav(temp_wav_path, rate=sampling_rate, data=wav_output)
-    if humanize:
-        temp_wav_path = _humanize_ai_output(temp_wav_path)
-    sound = pydub.AudioSegment.from_file(temp_wav_path)
-    output_stem = Path(temp_wav_path).with_name(f"generated_{random_string()}")
-    output_path = export_audio(sound, output_stem, format_choice)
-    delete_path(temp_wav_path)
-    return output_path
+    return generate_music(prompt, duration_s, format_choice, humanize)
 
 def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choice):
-    if not files or len(files) < 2: raise gr.Error("Please upload at least two audio files.")
-    transition_ms = int(transition_sec * 1000)
-    processed_tracks = []
-    if target_bpm is None or target_bpm == 0:
-        proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-        act = madmom.features.beats.RNNBeatProcessor()(files[0].name)
-        target_bpm = np.median(60 / np.diff(proc(act)))
-    for file in files:
-        try:
-            temp_stretched_path = None
-            current_path = file.name
-            if "beatmatched" in mix_type.lower():
-                proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-                act = madmom.features.beats.RNNBeatProcessor()(current_path)
-                original_bpm = np.median(60 / np.diff(proc(act)))
-                if original_bpm > 0 and target_bpm > 0:
-                    speed_factor = target_bpm / original_bpm
-                    temp_stretched_path = get_temp_file_path(Path(current_path).suffix)
-                    stretch_audio_cli(current_path, temp_stretched_path, speed_factor)
-                    current_path = temp_stretched_path
-            track_segment = pydub.AudioSegment.from_file(current_path)
-            processed_tracks.append(track_segment)
-            if temp_stretched_path:
-                delete_path(temp_stretched_path)
-        except Exception as e:
-            print(f"Could not process track {Path(file.name).name}, skipping. Error: {e}")
-            continue
-    if not processed_tracks: raise gr.Error("No tracks could be processed.")
-    final_mix = processed_tracks[0]
-    for i in range(1, len(processed_tracks)): final_mix = final_mix.append(processed_tracks[i], crossfade=transition_ms)
-    output_stem = get_temp_file_path("_dj_mix").replace(".wav", "")
-    final_output_path = export_audio(final_mix, output_stem, format_choice)
-    return final_output_path
+    return dj_mix(files, mix_type, target_bpm, transition_sec, format_choice)
 
 @spaces.GPU(duration=180)
 def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animation_style, scale_intensity):
-    if not image_path or not audio_path: raise gr.Error("Provide both an image and an audio file.")
-    img = Image.open(image_path)
-    effect_map = {"Blur": ImageFilter.BLUR, "Sharpen": ImageFilter.SHARPEN, "Contour": ImageFilter.CONTOUR, "Emboss": ImageFilter.EMBOSS}
-    if image_effect in effect_map: img = img.filter(effect_map[image_effect])
-    temp_img_path = get_temp_file_path(".png"); img.save(temp_img_path)
-    output_path = get_temp_file_path(".mp4")
-    audio_clip = AudioFileClip(audio_path)
-    duration = audio_clip.duration
-    y, sr = librosa.load(audio_path, sr=None)
-    rms = librosa.feature.rms(y=y)[0]
-    scales = 1.0 + (((rms - np.min(rms)) / (np.max(rms) - np.min(rms) + 1e-6)) * (scale_intensity - 1.0))
-    def beat_resize_func(t):
-        frame_index = min(int(t * sr / 512), len(scales) - 1)
-        return scales[frame_index]
-    image_clip = ImageClip(temp_img_path, duration=duration)
-    if animation_style == "Zoom In": image_clip = image_clip.resize(lambda t: 1 + 0.1 * (t / duration))
-    elif animation_style == "Zoom Out": image_clip = image_clip.resize(lambda t: 1.1 - 0.1 * (t / duration))
-    final_clip = image_clip.resize(lambda t: image_clip.w * beat_resize_func(t) / image_clip.w).set_position(('center', 'center')).set_audio(audio_clip)
-    final_clip.write_videofile(output_path, codec='libx264', fps=24, audio_codec='aac', logger=None)
-    delete_path(temp_img_path)
-    return output_path
+    return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
 @spaces.GPU(duration=180)
 def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position, language):
-    if not audio_path or not lyrics_text: raise gr.Error("Audio and lyrics text are required.")
-    audio_clip = AudioFileClip(audio_path)
-    duration = audio_clip.duration
-    if background_path:
-        bg_clip_class = ImageClip if background_path.lower().endswith(('.png', '.jpg', '.jpeg')) else VideoFileClip
-        background_clip = bg_clip_class(background_path, duration=duration)
-    else: background_clip = ColorClip(size=(1280, 720), color=(0,0,0), duration=duration)
-    background_clip = background_clip.resize(width=1280)
-    lines = [line for line in lyrics_text.strip().split('\n') if line.strip()]
-    if not lines: raise gr.Error("Lyrics text is empty.")
-    line_duration = duration / len(lines)
-    font = 'Arial'
-    if language in ["Hebrew", "Arabic", "Hindi", "Chinese", "Japanese", "Korean", "Russian", "Ukrainian", "Greek"]:
-        font = 'Arial'
-    lyric_clips = [TextClip(line, fontsize=70, color='white', font=font, stroke_color='black', stroke_width=2).set_position(text_position).set_start(i * line_duration).set_duration(line_duration) for i, line in enumerate(lines)]
-    final_clip = CompositeVideoClip([background_clip] + lyric_clips, size=background_clip.size).set_audio(audio_clip)
-    output_path = get_temp_file_path(".mp4")
-    final_clip.write_videofile(output_path, codec='libx264', fps=24, audio_codec='aac', logger=None)
-    return output_path
+    return lyric_video(audio_path, background_path, lyrics_text, text_position, language)
 
-def stretch_audio_cli(input_path, output_path, speed_factor, crispness=6):
-    if not os.path.exists(input_path): return False
-    command = ["rubberband", "--tempo", str(speed_factor), "--crispness", str(crispness), "-q", input_path, output_path]
-    try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
-        return output_path
-    except Exception as e:
-        print(f"Error during audio stretching with rubberband: {e}")
-        return False
+def stretch_audio_cli(input_path, output_path, speed_factor, crispness):
+    return stretch_audio(input_path, output_path, speed_factor, crispness)
 
 def _analyze_audio_features_logic(audio_path):
-    if not audio_path: raise gr.Error("Please upload an audio file.")
-    try:
-        proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-        act = madmom.features.beats.RNNBeatProcessor()(audio_path)
-        bpm = np.median(60 / np.diff(proc(act)))
-        y, sr = librosa.load(audio_path)
-        chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-        key_map = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        key = key_map[np.argmax(np.sum(chroma, axis=1))]
-        return f"{key}, {bpm:.2f} BPM"
-    except Exception as e: raise gr.Error(f"Analysis failed: {e}")
+    return analyze_audio_features(audio_path)
 
 def _change_audio_speed_logic(audio_path, speed_factor, preserve_pitch, format_choice):
-    if not audio_path: raise gr.Error("Please upload an audio file.")
-    sound_out = None
-    if preserve_pitch:
-        audio_path_out = get_temp_file_path(Path(audio_path).suffix)
-        if stretch_audio_cli(audio_path, audio_path_out, speed_factor):
-            sound_out = pydub.AudioSegment.from_file(audio_path_out)
-            delete_path(audio_path_out)
-        else:
-            raise gr.Error("Failed to stretch audio while preserving pitch.")
-    else:
-        sound = pydub.AudioSegment.from_file(audio_path)
-        new_frame_rate = int(sound.frame_rate * speed_factor)
-        sound_out = sound._spawn(sound.raw_data, overrides={"frame_rate": new_frame_rate}).set_frame_rate(sound.frame_rate)
-    if sound_out:
-        output_stem = str(Path(audio_path).with_name(f"{Path(audio_path).stem}_speed_{speed_factor}x"))
-        return export_audio(sound_out, output_stem, format_choice)
-    else:
-        raise gr.Error("Could not process audio speed change.")
+    return change_audio_speed(audio_path, speed_factor, preserve_pitch, format_choice)
 
 @spaces.GPU(duration=120)
 def _separate_stems_logic(audio_path, separation_type, format_choice):
-    if not audio_path: raise gr.Error("Please upload an audio file.")
-    output_dir = tempfile.mkdtemp()
-    run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{output_dir}" "{audio_path}"')
-    separated_dir = Path(output_dir) / "htdemucs_ft" / Path(audio_path).stem
-    vocals_path = separated_dir / "vocals.wav"
-    accompaniment_path = separated_dir / "no_vocals.wav"
-    if not vocals_path.exists() or not accompaniment_path.exists(): delete_path(output_dir); raise gr.Error("Stem separation failed.")
-    chosen_stem_path, suffix = (vocals_path, "_acapella") if "acapella" in separation_type.lower() else (accompaniment_path, "_karaoke")
-    sound = pydub.AudioSegment.from_file(chosen_stem_path)
-    output_stem = str(Path(audio_path).with_name(Path(audio_path).stem + suffix))
-    final_output_path = export_audio(sound, output_stem, format_choice)
-    delete_path(output_dir)
-    return final_output_path
+    return separate_stems(audio_path, separation_type, format_choice)
 
 @spaces.GPU(duration=120)
 def _pitch_shift_vocals_logic(audio_path, pitch_shift, format_choice):
-    if not audio_path: raise gr.Error("Please upload a song.")
-    separation_dir = tempfile.mkdtemp()
-    run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{separation_dir}" "{audio_path}"')
-    separated_dir = Path(separation_dir) / "htdemucs_ft" / Path(audio_path).stem
-    vocals_path = separated_dir / "vocals.wav"
-    instrumental_path = separated_dir / "no_vocals.wav"
-    if not vocals_path.exists() or not instrumental_path.exists(): delete_path(separation_dir); raise gr.Error("Vocal separation failed.")
-    y_vocals, sr = librosa.load(str(vocals_path), sr=None)
-    y_shifted = librosa.effects.pitch_shift(y=y_vocals, sr=sr, n_steps=float(pitch_shift))
-    shifted_vocals_path = get_temp_file_path("_shifted_vocals.wav")
-    sf.write(shifted_vocals_path, y_shifted, sr)
-    instrumental = pydub.AudioSegment.from_file(instrumental_path)
-    shifted_vocals = pydub.AudioSegment.from_file(shifted_vocals_path)
-    combined = instrumental.overlay(shifted_vocals)
-    output_stem = str(Path(audio_path).with_name(f"{Path(audio_path).stem}_vocal_pitch_shifted"))
-    final_output_path = export_audio(combined, output_stem, format_choice)
-    delete_path(separation_dir); delete_path(shifted_vocals_path)
-    return final_output_path
+    return pitch_shift_vocals(audio_path, pitch_shift, format_choice)
 
 def _create_spectrum_visualization_logic(audio_path):
-    if not audio_path: raise gr.Error("Please upload an audio file.")
-    try:
-        y, sr = librosa.load(audio_path)
-        
-        n_fft = 4096
-        start_sample = (len(y) - n_fft) // 2
-        y_sample = y[start_sample : start_sample + n_fft]
-
-        if len(y_sample) < n_fft:
-            y_sample = np.pad(y_sample, (0, n_fft - len(y_sample)))
-
-        window = np.hanning(len(y_sample))
-        y_windowed = y_sample * window
-        
-        fft_result = np.fft.fft(y_windowed)
-        freqs = np.fft.fftfreq(len(fft_result), 1/sr)
-        
-        mask = freqs >= 0
-        freqs = freqs[mask]
-        
-        magnitude = np.abs(fft_result[mask])
-        db_magnitude = 20 * np.log10(magnitude / np.max(magnitude))
-        
-        audible_mask = freqs > 20
-        if np.any(audible_mask):
-            peak_idx = np.argmax(db_magnitude[audible_mask])
-            peak_freq = freqs[audible_mask][peak_idx]
-            peak_db = db_magnitude[audible_mask][peak_idx]
-        else:
-            peak_freq, peak_db = 0, -90
-
-        fig, ax = plt.subplots(figsize=(10, 5), facecolor='#1f2937')
-        ax.set_facecolor('#1f2937')
-        
-        ax.plot(freqs, db_magnitude, color='#7c3aed')
-        ax.set_xscale('log')
-        
-        ax.set_xlim(20, 20000)
-        ax.set_ylim(-90, 0)
-        ax.set_title('Frequency Analysis', color='white')
-        ax.set_xlabel('Frequency (Hz)', color='white')
-        ax.set_ylabel('Amplitude (dB)', color='white')
-        ax.tick_params(colors='white', which='both')
-        ax.grid(True, which="both", ls="-", color='gray', alpha=0.4)
-        
-        peak_text = f'Peak: {peak_freq:.0f} Hz at {peak_db:.1f} dB'
-        ax.axvline(x=peak_freq, color='red', linestyle='-', alpha=0.8)
-        ax.text(0.98, 0.95, peak_text, transform=ax.transAxes, color='white', 
-                ha='right', va='top', bbox=dict(facecolor='#111827', alpha=0.6, edgecolor='none'))
-
-        fig.tight_layout()
-        temp_path = get_temp_file_path(".png")
-        fig.savefig(temp_path, facecolor=fig.get_facecolor())
-        plt.close(fig)
-        
-        return temp_path
-        
-    except Exception as e: raise gr.Error(f"Error creating spectrum: {e}")
+    return create_spectrum_visualization(audio_path)
 
 @spaces.GPU(duration=180)
 def _stem_mixer_logic(files, format_choice):
-    if not files or len(files) < 2:
-        raise gr.Error("Please upload at least two stem files.")
-    processed_stems = []
-    target_sr = None
-    target_bpm = None
-    for i, file in enumerate(files):
-        y, sr = librosa.load(file.name, sr=None)
-        if target_sr is None:
-            target_sr = sr
-        y = librosa.resample(y, orig_sr=sr, target_sr=target_sr)
-        proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-        act = madmom.features.beats.RNNBeatProcessor()(file.name)
-        tempo = np.median(60 / np.diff(proc(act)))
-        if i == 0:
-            target_bpm = tempo
-        if tempo != target_bpm:
-            speed_factor = target_bpm / tempo
-            temp_stretched_path = get_temp_file_path(".wav")
-            temp_original_path = get_temp_file_path(".wav")
-            sf.write(temp_original_path, y, target_sr)
-            stretch_audio_cli(temp_original_path, temp_stretched_path, speed_factor)
-            y, _ = librosa.load(temp_stretched_path, sr=target_sr)
-            delete_path(temp_original_path)
-            delete_path(temp_stretched_path)
-        processed_stems.append(y)
-    max_length = max(len(y) for y in processed_stems)
-    mixed_y = np.zeros(max_length)
-    for y in processed_stems:
-        mixed_y[:len(y)] += y
-    mixed_y /= len(processed_stems)
-    temp_wav_path = get_temp_file_path(".wav")
-    write_wav(temp_wav_path, target_sr, (mixed_y * 32767).astype(np.int16))
-    sound = pydub.AudioSegment.from_file(temp_wav_path)
-    output_stem = Path(temp_wav_path).with_name(f"stem_mix_{random_string()}")
-    output_path = export_audio(sound, output_stem, format_choice)
-    delete_path(temp_wav_path)
-    return output_path
+    return stem_mixer(files, format_choice)
 
 @spaces.GPU(duration=30)
 def _get_feedback_logic(audio_path):
-    if not audio_path:
-        raise gr.Error("Please upload an audio file for feedback.")
-    try:
-        y_stereo, sr = librosa.load(audio_path, sr=None, mono=False)
-        y_mono = librosa.to_mono(y_stereo) if y_stereo.ndim > 1 else y_stereo
-        rms = librosa.feature.rms(y=y_mono)[0]
-        spectral_contrast = librosa.feature.spectral_contrast(y=y_mono, sr=sr)
-        stft = librosa.stft(y_mono)
-        freqs = librosa.fft_frequencies(sr=sr)
-        bass_energy = np.mean(np.abs(stft[ (freqs >= 20) & (freqs < 250) ]))
-        high_energy = np.mean(np.abs(stft[ (freqs >= 5000) & (freqs < 20000) ]))
-        peak_amp = np.max(np.abs(y_mono))
-        mean_rms = np.mean(rms)
-        crest_factor = 20 * np.log10(peak_amp / mean_rms) if mean_rms > 0 else 0
-        stereo_width = 0
-        if y_stereo.ndim > 1 and y_stereo.shape[0] == 2:
-            corr, _ = pearsonr(y_stereo[0], y_stereo[1])
-            stereo_width = (1 - corr) * 100
-        feedback = "### AI Track Feedback\n\n"
-        feedback += "#### Technical Analysis\n"
-        feedback += f"- **Loudness & Dynamics:** The track has a crest factor of **{crest_factor:.2f} dB**. "
-        if crest_factor > 14:
-            feedback += "This suggests the track is very dynamic and punchy.\n"
-        elif crest_factor > 8:
-            feedback += "This is a good balance between punch and loudness, typical for many genres.\n"
-        else:
-            feedback += "This suggests the track is heavily compressed or limited, prioritizing loudness over dynamic range.\n"
-        feedback += f"- **Stereo Image:** The stereo width is estimated at **{stereo_width:.1f}%**. "
-        if stereo_width > 60:
-            feedback += "The mix feels wide and immersive.\n"
-        elif stereo_width > 20:
-            feedback += "The mix has a balanced stereo field.\n"
-        else:
-            feedback += "The mix is narrow or mostly mono.\n"
-        feedback += f"- **Frequency Balance:** Bass energy is at **{bass_energy:.2f}** and high-frequency energy is at **{high_energy:.2f}**. "
-        if bass_energy > high_energy * 2:
-            feedback += "The track is bass-heavy.\n"
-        elif high_energy > bass_energy * 2:
-            feedback += "The track is bright or treble-heavy.\n"
-        else:
-            feedback += "The track has a relatively balanced frequency spectrum.\n"
-        feedback += "\n#### Advice\n"
-        if crest_factor < 8:
-            feedback += "- **Compression:** The track might be over-compressed. Consider reducing the amount of compression to bring back some life and punch to the transients.\n"
-        if stereo_width < 20 and y_stereo.ndim > 1:
-            feedback += "- **Stereo Width:** To make the mix sound bigger, try using stereo widening tools or panning instruments differently to create more space.\n"
-        if bass_energy > high_energy * 2.5:
-            feedback += "- **Bass Management:** The low-end might be overpowering. Ensure it's not masking other instruments. A high-pass filter on non-bass elements can clean up muddiness.\n"
-        if high_energy > bass_energy * 2.5:
-            feedback += "- **Tame the Highs:** The track is very bright, which can be fatiguing. Check for harshness in cymbals or vocals, and consider using a de-esser or a gentle high-shelf cut.\n"
-        if mean_rms < 0.05:
-            feedback += "- **Mastering:** The overall volume is low. The track would benefit from mastering to increase its loudness and competitiveness with commercial tracks.\n"
-        else:
-            feedback += "- **General Mix:** The track has a solid technical foundation. Focus on creative choices, arrangement, and ensuring all elements have their own space in the mix.\n"
-        return feedback
-    except Exception as e:
-        raise gr.Error(f"Analysis failed: {e}")
+    return get_audio_feedback(audio_path)
 
 @spaces.GPU(duration=180)
 def _generate_video_logic(audio_path, prompt, format_choice):
-    if not audio_path:
-        raise gr.Error("Please upload an audio file.")
-    y, sr = librosa.load(audio_path)
-    duration = librosa.get_duration(y=y, sr=sr)
-    rms = librosa.feature.rms(y=y)[0]
-    spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)[0]
-    proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-    act = madmom.features.beats.RNNBeatProcessor()(audio_path)
-    beat_times = proc(act)
-    beats = librosa.time_to_frames(beat_times, sr=sr)
-    rms_norm = (rms - np.min(rms)) / (np.max(rms) - np.min(rms) + 1e-6)
-    centroid_norm = (spectral_centroid - np.min(spectral_centroid)) / (np.max(spectral_centroid) - np.min(spectral_centroid) + 1e-6)
-    w, h = 1280, 720
-    fps = 30
-    def make_frame(t):
-        frame = np.zeros((h, w, 3), dtype=np.uint8)
-        frame_idx = int(t * sr / 512)
-        color_val = centroid_norm[min(frame_idx, len(centroid_norm)-1)]
-        r = int(10 + color_val * 60)
-        g = int(20 + color_val * 40)
-        b = int(40 + color_val * 90)
-        frame[:,:,:] = [r, g, b]
-        radius = int(50 + rms_norm[min(frame_idx, len(rms_norm)-1)] * 200)
-        center_x, center_y = w // 2, h // 2
-        for beat_frame in beats:
-            if abs(frame_idx - beat_frame) < 2:
-                radius = int(radius * 1.5)
-                break
-        rr, cc = np.ogrid[:h, :w]
-        circle_mask = (rr - center_y)**2 + (cc - center_x)**2 <= radius**2
-        frame[circle_mask] = [int(200 + color_val * 55), int(150 - color_val * 50), int(100 + color_val * 50)]
-        return frame
-    output_path = get_temp_file_path(".mp4")
-    animation = VideoClip(make_frame, duration=duration)
-    audio_clip = AudioFileClip(audio_path)
-    final_clip = animation.set_audio(audio_clip)
-    final_clip.write_videofile(output_path, codec='libx264', audio_codec='aac', fps=fps)
-    return output_path
+    return generate_video(audio_path, prompt, format_choice)
 
 @spaces.GPU(duration=30)
 def _identify_instruments_logic(audio_path):
-    if not audio_path:
-        raise gr.Error("Please upload an audio file to identify instruments.")
-    if instrument_classifier is None:
-        raise gr.Error("Instrument identification model is not available.")
-    predictions = instrument_classifier(audio_path, top_k=10)
-    instrument_list = [
-        "guitar", "piano", "violin", "drum", "bass", "saxophone", "trumpet", "flute",
-        "cello", "clarinet", "synthesizer", "organ", "accordion", "banjo", "harp", "voice", "speech"
-    ]
-    detected_instruments = "### Detected Instruments\n\n"
-    found = False
-    for p in predictions:
-        label = p['label'].lower()
-        if any(instrument in label for instrument in instrument_list):
-            detected_instruments += f"- **{p['label'].title()}** (Score: {p['score']:.2f})\n"
-            found = True
-    if not found:
-        detected_instruments += "Could not identify specific instruments with high confidence. Top sound events:\n"
-        for p in predictions[:3]:
-            detected_instruments += f"- {p['label'].title()} (Score: {p['score']:.2f})\n"
-    return detected_instruments
+    return identify_instruments(audio_path)
 
 @spaces.GPU(duration=120)
 def _extend_audio_logic(audio_path, extend_duration_s, format_choice, humanize):
-    if not audio_path:
-        raise gr.Error("Please upload an audio file to extend.")
-    if generation_model is None or processor is None:
-        raise gr.Error("MusicGen model is not available for audio extension.")
-    y, sr = librosa.load(audio_path, sr=None, mono=True)
-    prompt_duration_s = min(15.0, len(y) / sr)
-    prompt_wav = y[-int(prompt_duration_s * sr):]
-    inputs = processor(
-        audio=prompt_wav,
-        sampling_rate=sr,
-        return_tensors="pt"
-    ).to(DEVICE)
-    total_duration_s = prompt_duration_s + extend_duration_s
-    max_new_tokens = int(total_duration_s * 50)
-    generated_audio_values = generation_model.generate(
-        **inputs,
-        do_sample=True,
-        guidance_scale=3,
-        max_new_tokens=max_new_tokens
-    )
-    generated_wav = generated_audio_values[0, 0].cpu().numpy()
-    extension_start_sample = int(prompt_duration_s * generation_model.config.audio_encoder.sampling_rate)
-    extension_wav = generated_wav[extension_start_sample:]
-    temp_extension_path = get_temp_file_path(".wav")
-    sf.write(temp_extension_path, extension_wav, generation_model.config.audio_encoder.sampling_rate)
-    if humanize:
-        temp_extension_path = _humanize_ai_output(temp_extension_path)
-    original_sound = pydub.AudioSegment.from_file(audio_path)
-    extension_sound = pydub.AudioSegment.from_file(temp_extension_path)
-    if original_sound.channels != extension_sound.channels:
-        extension_sound = extension_sound.set_channels(original_sound.channels)
-    final_sound = original_sound + extension_sound
-    output_stem = str(Path(audio_path).with_name(f"{Path(audio_path).stem}_extended"))
-    final_output_path = export_audio(final_sound, output_stem, format_choice)
-    delete_path(temp_extension_path)
-    return final_output_path
-
-@spaces.GPU(duration=20)
-def _chatbot_response_logic(message, history):
-    if chatbot_pipeline is None:
-        history.append((message, "My AI brain is offline right now, sorry! Please try again later."))
-        return "", history
-    system_prompt = {
-        "role": "system",
-        "content": """You are Fazzer, the official AI assistant for the 'Audio Studio Pro' application. Your personality is friendly, helpful, and enthusiastic about audio production. Your primary goal is to assist users by answering their questions about the application's features and guiding them on how to use the tools.
-
-**Key Information about the project:**
-- The application is called **Audio Studio Pro**.
-- It was created by a developer named **Yaron** in **Israel**.
-- Your name is **Fazzer**.
-
-**Your Core Responsibilities:**
-1. Explain the purpose of each tool in the application.
-2. Provide simple, step-by-step instructions on how to use the features based on their UI.
-3. Maintain a concise, clear, and encouraging tone.
-4. If you don't know the answer, politely say so. Do not make up features.
-
-**Here is a complete list of the application's features with usage instructions:**
-* **Mastering:** Automatically enhances a track's loudness and clarity. **How to use:** Upload your track, adjust the 'Mastering Strength' slider, choose an output format, and click 'Master Audio'.
-* **Vocal Auto-Tune:** Corrects the pitch of vocals and aligns them to the beat. **How to use:** Upload a full song, set the 'Tuning Strength' (1.0 is maximum), and click 'Auto-Tune Vocals'.
-* **MIDI Tools:** A suite for MIDI conversion and enhancement. **Audio to MIDI:** Converts an audio recording into a MIDI file. **MIDI to Audio:** Renders a MIDI file into an audio track. **AI MIDI Enhancer:** Takes a simple MIDI melody and uses AI to generate a fuller musical arrangement.
-* **Audio Extender:** Uses AI to seamlessly continue a piece of music. **How to use:** Upload your audio, use the 'Extend Duration' slider to choose how many seconds to add, and click 'Extend Audio'.
-* **Stem Mixer:** Mixes individual instrument tracks (stems) together. **How to use:** Upload multiple audio files (e.g., drums.wav, bass.wav). The tool automatically beatmatches them to the first track and mixes them.
-* **Track Feedback:** Provides AI-powered analysis and advice on your mix. **How to use:** Upload your track and click 'Get Feedback' for written analysis on its dynamics, stereo width, and frequency balance.
-* **Instrument ID:** Identifies the instruments in a track. **How to use:** Upload an audio file and click 'Identify Instruments'.
-* **AI Video Gen:** Creates a simple, abstract music visualizer. **How to use:** Upload an audio file and click 'Generate Video' to create a video with a pulsing circle that reacts to the music.
-* **Speed & Pitch:** Changes the playback speed of a track. **How to use:** Upload audio, use the 'Speed Factor' slider (e.g., 1.5x is faster), and check 'Preserve Pitch' for a more natural sound.
-* **Stem Separation:** Splits a song into vocals and instrumental. **How to use:** Upload a full song and choose either 'Acapella (Vocals Only)' or 'Karaoke (Instrumental Only)'.
-* **Vocal Pitch Shifter:** Changes the pitch of only the vocals in a song. **How to use:** Upload a song and use the 'Vocal Pitch Shift' slider to raise or lower the vocal pitch in semitones.
-* **Voice Conversion (RVC):** Converts a song using a different AI voice, preserving the melody. **How to use:** Upload a song. Then, either choose a voice from the library or upload your own custom model file (a .pth file) in the 'Use Your Custom Model' section.
-* **Voice Lab (Training):** An advanced tool to create your own RVC voice models. **How to use:** Prepare a zip file with 5-15 minutes of clean, isolated vocals. Upload it to the Voice Lab, give your model a name, and start the training process. This takes a long time. Once done, you can download your model files.
-* **DJ AutoMix:** Automatically mixes multiple songs together. **How to use:** Upload two or more tracks. Choose 'Beatmatched Crossfade' for a smooth, tempo-synced mix and adjust the 'Transition Duration'.
-* **AI Music Gen:** Creates original music from a text description. **How to use:** Write a description of the music you want (e.g., 'upbeat synthwave'), set the duration, and click 'Generate Music'.
-* **AI Voice Gen:** Clones a voice to say anything you type. **How to use:** Upload a clean 5-15 second 'Reference Voice' sample, type the 'Text to Speak', and click 'Generate Voice'.
-* **Analysis (BPM & Key):** Detects a track's musical key and tempo. **How to use:** Upload your audio and click 'Analyze Audio'.
-* **Speech-to-Text:** Transcribes speech from an audio file into text. **How to use:** Upload an audio file with speech, select the language, and click 'Transcribe Audio'.
-* **Spectrum Analyzer:** Creates a visual graph (spectrogram) of your audio's frequencies. **How to use:** Upload an audio file and click 'Generate Spectrum'.
-* **Beat Visualizer:** Creates a video where an image pulses to the music's beat. **How to use:** Upload an image and an audio file. Adjust the 'Beat Intensity' slider to control how much the image reacts.
-* **Lyric Video Creator:** Creates a simple lyric video. **How to use:** Upload a song and a background image/video. Then, paste your lyrics into the text box, with each line representing a new phrase on screen.
-* **Support Chat:** That's you! You are here to answer questions like 'What is Stem Mixing?' or 'How do I use the Vocal Pitch Shifter?' based on the descriptions above."""
-    }
-    messages = [system_prompt]
-    for user_turn, bot_turn in history:
-        messages.append({"role": "user", "content": user_turn})
-        messages.append({"role": "assistant", "content": bot_turn})
-    messages.append({"role": "user", "content": message})
-    try:
-        prompt = chatbot_pipeline.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        outputs = chatbot_pipeline(prompt, max_new_tokens=256, do_sample=True, temperature=0.7, top_k=50, top_p=0.95)
-        full_response = outputs[0]["generated_text"]
-        response = full_response[len(prompt):].strip()
-    except Exception as e:
-        print(f"Chatbot generation failed: {e}")
-        response = "Sorry, I encountered an error while processing your request."
-    history.append((message, response))
-    return "", history
+    return extend_audio(audio_path, extend_duration_s, format_choice, humanize)
 
 @spaces.GPU(duration=60)
 def _audio_to_midi_logic(audio_path):
-    if not audio_path:
-        raise gr.Error("Please upload an audio file for MIDI conversion.")
-    output_dir = tempfile.mkdtemp()
-    predict_midi(audio_path, output_dir)
-    midi_files = list(Path(output_dir).glob("*.mid"))
-    if not midi_files:
-        delete_path(output_dir)
-        raise gr.Error("Failed to convert audio to MIDI.")
-    final_midi_path = get_temp_file_path(".mid")
-    shutil.copy(midi_files[0], final_midi_path)
-    delete_path(output_dir)
-    return final_midi_path
+    return audio_to_midi(audio_path)
 
 @spaces.GPU(duration=30)
 def _midi_to_audio_logic(midi_path, format_choice):
-    if not midi_path:
-        raise gr.Error("Please upload a MIDI file for audio conversion.")
-    soundfont_paths = [
-        os.path.join(os.path.expanduser("~"), "app_dependencies", "soundfonts", "FluidR3_GM.sf2"),
-        "/usr/share/sounds/sf2/FluidR3_GM.sf2",
-        "C:/Windows/System32/drivers/gm.dls"
-    ]
-    soundfont_file = None
-    for path in soundfont_paths:
-        if os.path.exists(path):
-            soundfont_file = path
-            break
-    if soundfont_file is None:
-        raise gr.Error("SoundFont file not found. MIDI to Audio conversion cannot proceed. Please re-run the dependency installer.")
-    fs = FluidSynth(sound_font=soundfont_file)
-    temp_wav_path = get_temp_file_path(".wav")
-    fs.midi_to_audio(midi_path, temp_wav_path)
-    sound = pydub.AudioSegment.from_file(temp_wav_path)
-    output_stem = str(Path(midi_path).with_name(f"{Path(midi_path).stem}_render"))
-    final_output_path = export_audio(sound, output_stem, format_choice)
-    delete_path(temp_wav_path)
-    return final_output_path
+    return midi_to_audio(midi_path, format_choice)
 
 @spaces.GPU(duration=150)
 def _enhance_midi_logic(midi_path, format_choice, humanize):
-    if not midi_path:
-        raise gr.Error("Please upload a MIDI file to enhance.")
-    temp_audio_prompt = _midi_to_audio_logic(midi_path, "wav")
-    enhanced_audio = _extend_audio_logic(temp_audio_prompt, 10, format_choice, humanize)
-    delete_path(temp_audio_prompt)
-    return enhanced_audio
+    return enhance_midi(midi_path, format_choice, humanize)
 
 @spaces.GPU(duration=240)
 def _autotune_vocals_logic(audio_path, strength, format_choice):
-    if not audio_path:
-        raise gr.Error("Please upload a song for vocal tuning.")
-    separation_dir = tempfile.mkdtemp()
-    try:
-        run_command(f'"{sys.executable}" -m demucs.separate -n htdemucs_ft --two-stems=vocals -o "{separation_dir}" "{audio_path}"')
-        separated_dir = Path(separation_dir) / "htdemucs_ft" / Path(audio_path).stem
-        vocals_path = separated_dir / "vocals.wav"
-        instrumental_path = separated_dir / "no_vocals.wav"
-        if not vocals_path.exists() or not instrumental_path.exists():
-            raise gr.Error("Vocal separation failed.")
-        y_original, sr = librosa.load(str(vocals_path), sr=None, mono=True)
-        y = np.copy(y_original)
-        print("Starting vocal rhythm correction...")
-        try:
-            proc = madmom.features.beats.DBNBeatTrackingProcessor(fps=100)
-            act = madmom.features.beats.RNNBeatProcessor()(str(instrumental_path))
-            beat_times = proc(act)
-            vocal_intervals = librosa.effects.split(y, top_db=40, frame_length=2048, hop_length=512)
-            if len(vocal_intervals) > 0 and len(beat_times) > 0:
-                y_timed = np.zeros_like(y)
-                last_end_sample = 0
-                for start_frame, end_frame in vocal_intervals:
-                    start_sample = librosa.frames_to_samples(start_frame, hop_length=512)
-                    end_sample = librosa.frames_to_samples(end_frame, hop_length=512)
-                    segment = y[start_sample:end_sample]
-                    if len(segment) == 0:
-                        continue
-                    start_time = librosa.samples_to_time(start_sample, sr=sr)
-                    quantized_start_time_idx = np.argmin(np.abs(beat_times - start_time))
-                    quantized_start_time = beat_times[quantized_start_time_idx]
-                    quantized_start_sample = librosa.time_to_samples(quantized_start_time, sr=sr)
-                    if quantized_start_sample < last_end_sample:
-                        next_beat_candidates = beat_times[beat_times > librosa.samples_to_time(last_end_sample, sr=sr)]
-                        if len(next_beat_candidates) > 0:
-                            quantized_start_sample = librosa.time_to_samples(next_beat_candidates[0], sr=sr)
-                        else:
-                            quantized_start_sample = last_end_sample
-                    start_pos = quantized_start_sample
-                    end_pos = start_pos + len(segment)
-                    segment_to_place = segment
-                    if end_pos > len(y_timed):
-                        segment_to_place = segment[:len(y_timed) - start_pos]
-                    if len(segment_to_place) > 0:
-                        y_timed[start_pos : start_pos + len(segment_to_place)] += segment_to_place
-                        last_end_sample = start_pos + len(segment_to_place)
-                max_amp = np.max(np.abs(y_timed))
-                if max_amp > 1.0:
-                    y_timed /= max_amp
-                if np.max(np.abs(y_timed)) < 0.01:
-                    print("Rhythm correction resulted in near-silence. Reverting to original vocal timing.")
-                    y = y_original
-                else:
-                    y = y_timed
-                    print("Vocal rhythm correction applied successfully.")
-            else:
-                print("Could not detect beats or vocal segments, skipping rhythm correction.")
-        except Exception as e:
-            print(f"Could not apply rhythm correction, proceeding with pitch correction only. Error: {e}")
-        n_fft = 2048
-        hop_length = 512
-        stft_vocals = librosa.stft(y, n_fft=n_fft, hop_length=hop_length)
-        magnitudes = np.abs(stft_vocals)
-        f0, voiced_flag, _ = librosa.pyin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'), sr=sr, frame_length=n_fft, hop_length=hop_length)
-        f0 = np.nan_to_num(f0)
-        target_f0 = np.copy(f0)
-        for i in range(len(f0)):
-            if voiced_flag[i]:
-                current_f0 = f0[i]
-                if current_f0 > 0:
-                    target_midi = round(librosa.hz_to_midi(current_f0))
-                    ideal_f0 = librosa.midi_to_hz(target_midi)
-                    target_f0[i] = current_f0 + (ideal_f0 - current_f0) * strength
-        phase = np.angle(stft_vocals)
-        new_phase = np.zeros_like(phase)
-        new_phase[:, 0] = phase[:, 0]
-        freqs = librosa.fft_frequencies(sr=sr, n_fft=n_fft)
-        expected_phase_advance = 2 * np.pi * freqs * hop_length / sr
-        for t in range(1, stft_vocals.shape[1]):
-            dphase = phase[:, t] - phase[:, t-1] - expected_phase_advance
-            dphase = dphase - 2 * np.pi * np.round(dphase / (2 * np.pi))
-            true_freq = expected_phase_advance + dphase
-            ratio = 1.0
-            if t < len(f0) and f0[t] > 0 and target_f0[t] > 0:
-                ratio = target_f0[t] / f0[t]
-            shifted_phase_advance = true_freq * ratio
-            new_phase[:, t] = new_phase[:, t-1] + shifted_phase_advance
-        stft_tuned = magnitudes * np.exp(1j * new_phase)
-        y_tuned = librosa.istft(stft_tuned, hop_length=hop_length, length=len(y))
-        temp_tuned_vocals_path = get_temp_file_path("_tuned_vocals.wav")
-        sf.write(temp_tuned_vocals_path, y_tuned, sr)
-        instrumental = pydub.AudioSegment.from_file(instrumental_path)
-        tuned_vocals = pydub.AudioSegment.from_file(temp_tuned_vocals_path)
-        if instrumental.channels == 2 and tuned_vocals.channels == 1:
-            tuned_vocals = tuned_vocals.set_channels(2)
-        combined = instrumental.overlay(tuned_vocals)
-        output_stem = str(Path(audio_path).with_name(f"{Path(audio_path).stem}_autotuned"))
-        final_output_path = export_audio(combined, output_stem, format_choice)
-        delete_path(temp_tuned_vocals_path)
-        return final_output_path
-    finally:
-        delete_path(separation_dir)
+    return autotune_vocals(audio_path, strength, format_choice)
 
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
@@ -1177,8 +222,8 @@ def main():
         #header { text-align: center; padding: 25px; margin-bottom: 20px; }
     """
     format_choices = ["MP3", "WAV", "FLAC"]
-    language_choices = sorted(list(ALL_LANGUAGES.keys()))
-    tts_enabled = all([tts_model])
+    language_choices = sorted(list(language_codes.values()))
+    tts_enabled = all([MODELS["tts"]])
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
@@ -1194,8 +239,7 @@ def main():
                 nav_speed_btn = gr.Button("Speed & Pitch", variant="secondary", elem_classes="nav-button")
                 nav_stem_btn = gr.Button("Stem Separation", variant="secondary", elem_classes="nav-button")
                 nav_vps_btn = gr.Button("Vocal Pitch Shifter", variant="secondary", elem_classes="nav-button")
-                nav_voice_conv_btn = gr.Button("Voice Conversion (RVC)", variant="secondary", elem_classes="nav-button")
-                nav_voice_lab_btn = gr.Button("Voice Lab (Training)", variant="secondary", elem_classes="nav-button")
+                nav_voice_lab_btn = gr.Button("Voice Lab", variant="secondary", elem_classes="nav-button")
                 nav_dj_btn = gr.Button("DJ AutoMix", variant="secondary", elem_classes="nav-button")
                 nav_music_gen_btn = gr.Button("AI Music Gen", variant="secondary", elem_classes="nav-button")
                 nav_voice_gen_btn = gr.Button("AI Voice Gen", variant="secondary", elem_classes="nav-button")
@@ -1349,49 +393,31 @@ def main():
                             with gr.Group(visible=False) as vps_output_box:
                                 vps_output = gr.Audio(label="Pitch Shifted Song", interactive=False, show_download_button=True)
                                 vps_share_links = gr.Markdown()
-                with gr.Group(visible=False, elem_classes="tool-container") as view_voice_conv:
-                    gr.Markdown("## Voice Conversion")
-                    gr.Markdown("<p style='text-align:center;'>Convert any song with a high-quality AI voice. Use our library or upload your own custom model.</p>")
-                    with gr.Row():
-                        with gr.Column():
-                            vc_target_audio = gr.Audio(label="Upload Song to Convert", type='filepath')
-                            gr.Markdown("#### Option 1: Use Voice Library")
-                            voice_choices = ["Female Pop Singer", "Male Rock Singer", "Male Rapper"]
-                            vc_voice_choice = gr.Dropdown(voice_choices, label="Choose a Voice", value=voice_choices[0])
-                            vc_pitch_shift = gr.Slider(-12, 12, 0, step=1, label="Pitch Shift (Transpose Vocals)")
-                            vc_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            with gr.Accordion("Option 2: Use Your Custom Model", open=False):
-                                vc_custom_model_pth = gr.File(label="Upload .pth model file")
-                                vc_custom_model_index = gr.File(label="Upload .index file (optional)")
-                            with gr.Row(): vc_btn = gr.Button("Convert Voice", variant="primary"); clear_vc_btn = gr.Button("Clear", variant="secondary")
-                        with gr.Column():
-                            with gr.Group(visible=False) as vc_output_box:
-                                vc_output = gr.Audio(label="Converted Song", interactive=False, show_download_button=True)
-                                vc_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_lab:
                     gr.Markdown("## 🔬 Voice Lab")
-                    gr.Markdown("""
-                    <div style='background-color:#374151; padding:15px; border-radius:10px; border: 1px solid #4f46e5;'>
-                    <h4 style='color:orange; text-align:center;'>⚠️ IMPORTANT WARNING ⚠️</h4>
-                    <p>This is an **experimental** tool for advanced users. Training a voice model is slow and resource-intensive.</p>
-                    <ul>
-                        <li><b>Dataset:</b> For best results, provide a ZIP file with **5-15 minutes** of clean, isolated vocals (no background music).</li>
-                        <li><b>Time Limit:</b> This platform has a **5-minute (300s) maximum** for any task. Training will be stopped if it exceeds this limit.</li>
-                        <li><b>Epochs:</b> Keep epochs low (5-20) to ensure training finishes in time. Real models are trained for 200+ epochs over many hours.</li>
-                        <li><b>Output:</b> You will get a ZIP file containing your `.pth` and `.index` model files, which you can then use in the RVC Converter tool.</li>
-                    </ul>
-                    </div>
-                    """)
-                    with gr.Row():
-                        with gr.Column():
-                            vl_model_name = gr.Textbox(label="New Model Name", placeholder="e.g., my_voice_v1")
-                            vl_dataset = gr.File(label="Upload Vocal Dataset (.zip)", file_types=[".zip"])
-                            quality_choices = ["Quick Test (Lowest Quality)", "Standard Quality (Recommended)", "Best Quality (Slowest)"]
-                            vl_quality = gr.Radio(quality_choices, label="Training Quality", value=quality_choices[1], info="Higher quality takes more time.")
-                            with gr.Row(): vl_train_btn = gr.Button("Start Training", variant="primary")
-                        with gr.Column():
-                            vl_status = gr.Textbox(label="Training Status", interactive=False, lines=8)
-                            vl_output_file = gr.File(label="Download Your Trained Model", interactive=False)
+                        with gr.Row(visible=False):
+                            experiment = gr.Textbox(
+                                value=random_string()
+                            )
+                        with gr.Row():
+                            inp = gr.File(
+                                label="Input",
+                                type="filepath"
+                            )
+                            outp = gr.File(
+                                label="Output",
+                                type="filepath",
+                                file_count="multiple"
+                            )
+                        with gr.Row():
+                            ptch = gr.Number(label="Pitch",value=0,minimum=-12,maximum=12,step=1)
+                        with gr.Row(visible=False):
+                            lvl = gr.Number(label="(re-)training step",value=1,minimum=1,step=1)
+                        with gr.Row():
+                            but1 = gr.Button("Train", variant="primary")
+                            but1.click( fn=handle_training, inputs=[experiment,inp,lvl], outputs=[outp,lvl] )
+                            but2 = gr.Button("Convert", variant="primary")
+                            but2.click( fn=handle_conversion, inputs=[experiment,inp,ptch], outputs=[outp] )
                 with gr.Group(visible=False, elem_classes="tool-container") as view_dj:
                     gr.Markdown("## DJ AutoMix")
                     with gr.Row():
@@ -1486,25 +512,19 @@ def main():
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
-                    gr.Markdown("## Support Chat with Fazzer")
-                    chatbot_history = gr.Chatbot(label="Audio Studio Pro Support")
-                    chatbot_msg = gr.Textbox(label="Your Message", placeholder="Ask me anything about the app...")
-                    gr.Examples(
-                        examples=[
+                    chat = init_chat(
+                        "Audio Studio Pro support",
+                        [
                             "Who are you?",
                             "Who created this project?",
                             "How does the Mastering tool work?",
                             "What is Stem Mixing?",
                             "Tell me about Voice Conversion.",
                             "How can I extend a song?",
-                        ],
-                        inputs=chatbot_msg,
-                        label="Preset Questions"
+                        ]                        
                     )
-                    clear_chatbot_btn = gr.Button("Clear Chat")
-
-        nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_conv": nav_voice_conv_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
-        views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_conv": view_voice_conv, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
+        nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
+        views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
 
         def switch_view(selected_view):
             view_updates = {view: gr.update(visible=(name == selected_view)) for name, view in views.items()}
@@ -1524,10 +544,6 @@ def main():
                     raise gr.Error(str(e))
             btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el])
 
-        vl_train_btn.click(_train_voice_model_logic, 
-                           inputs=[vl_model_name, vl_dataset, vl_quality], 
-                           outputs=[vl_status, vl_output_file])
-
         create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, None, _audio_to_midi_logic, a2m_input)
@@ -1539,7 +555,6 @@ def main():
         create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
         create_ui_handler(vps_btn, vps_output, vps_output_box, vps_share_links, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
-        create_ui_handler(vc_btn, vc_output, vc_output_box, vc_share_links, _voice_conversion_logic, vc_target_audio, vc_voice_choice, vc_pitch_shift, vc_format, vc_custom_model_pth, vc_custom_model_index)
         create_ui_handler(dj_btn, dj_output, dj_output_box, dj_share_links, _auto_dj_mix_logic, dj_files, dj_mix_type, dj_target_bpm, dj_transition, dj_format)
         create_ui_handler(gen_btn, gen_output, gen_output_box, gen_share_links, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
         create_ui_handler(vg_btn, vg_output, vg_output_box, vg_share_links, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
@@ -1622,7 +637,6 @@ def main():
         clear_speed_btn.click(lambda: clear_ui(speed_input, speed_output, speed_output_box), [], [speed_input, speed_output, speed_output_box])
         clear_stem_btn.click(lambda: clear_ui(stem_input, stem_output, stem_output_box), [], [stem_input, stem_output, stem_output_box])
         clear_vps_btn.click(lambda: clear_ui(vps_input, vps_output, vps_output_box), [], [vps_input, vps_output, vps_output_box])
-        clear_vc_btn.click(lambda: clear_ui(vc_target_audio, vc_output, vc_output_box, vc_custom_model_pth, vc_custom_model_index), [], [vc_target_audio, vc_output, vc_output_box, vc_custom_model_pth, vc_custom_model_index])
         clear_dj_btn.click(lambda: clear_ui(dj_files, dj_output, dj_output_box), [], [dj_files, dj_output, dj_output_box])
         clear_gen_btn.click(lambda: {**clear_ui(gen_output, gen_output_box), **{gen_prompt: ""}}, [], [gen_output, gen_output_box, gen_prompt])
         clear_vg_btn.click(lambda: {**clear_ui(vg_ref, vg_output, vg_output_box), **{vg_text: ""}}, [], [vg_ref, vg_output, vg_output_box, vg_text])
@@ -1634,7 +648,7 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-    app.queue(max_size=20).launch(debug=True)
+    app.queue(max_size=3).launch(inbrowser=True)
 
 if __name__ == "__main__":
     main()
