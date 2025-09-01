@@ -54,7 +54,6 @@ init_pretrained_model("speech-recognition")
 init_pretrained_model("audio-classification")
 init_pretrained_model("music")
 init_pretrained_model("answer")
-init_pretrained_model("image")
 
 install_faiss()
 install_ffmpeg()
