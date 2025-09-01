@@ -395,29 +395,29 @@ def main():
                                 vps_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_lab:
                     gr.Markdown("## 🔬 Voice Lab")
-                        with gr.Row(visible=False):
-                            experiment = gr.Textbox(
-                                value=random_string()
-                            )
-                        with gr.Row():
-                            inp = gr.File(
-                                label="Input",
-                                type="filepath"
-                            )
-                            outp = gr.File(
-                                label="Output",
-                                type="filepath",
-                                file_count="multiple"
-                            )
-                        with gr.Row():
-                            ptch = gr.Number(label="Pitch",value=0,minimum=-12,maximum=12,step=1)
-                        with gr.Row(visible=False):
-                            lvl = gr.Number(label="(re-)training step",value=1,minimum=1,step=1)
-                        with gr.Row():
-                            but1 = gr.Button("Train", variant="primary")
-                            but1.click( fn=handle_training, inputs=[experiment,inp,lvl], outputs=[outp,lvl] )
-                            but2 = gr.Button("Convert", variant="primary")
-                            but2.click( fn=handle_conversion, inputs=[experiment,inp,ptch], outputs=[outp] )
+                    with gr.Row(visible=False):
+                        experiment = gr.Textbox(
+                            value=random_string()
+                        )
+                    with gr.Row():
+                        inp = gr.File(
+                            label="Input",
+                            type="filepath"
+                        )
+                        outp = gr.File(
+                            label="Output",
+                            type="filepath",
+                            file_count="multiple"
+                        )
+                    with gr.Row():
+                        ptch = gr.Number(label="Pitch",value=0,minimum=-12,maximum=12,step=1)
+                    with gr.Row(visible=False):
+                        lvl = gr.Number(label="(re-)training step",value=1,minimum=1,step=1)
+                    with gr.Row():
+                        but1 = gr.Button("Train", variant="primary")
+                        but1.click( fn=handle_training, inputs=[experiment,inp,lvl], outputs=[outp,lvl] )
+                        but2 = gr.Button("Convert", variant="primary")
+                        but2.click( fn=handle_conversion, inputs=[experiment,inp,ptch], outputs=[outp] )
                 with gr.Group(visible=False, elem_classes="tool-container") as view_dj:
                     gr.Markdown("## DJ AutoMix")
                     with gr.Row():
