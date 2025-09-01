@@ -1,20 +1,5 @@
-import torch
-import spaces
 import gradio as gr
-import matplotlib.pyplot as plt
-from scipy.io.wavfile import write as write_wav
-from scipy.stats import pearsonr
-import matchering as mg
-import pydub
-from googledrivedownloader import download_file_from_google_drive
-from transformers import AutoProcessor, MusicgenForConditionalGeneration, pipeline, SpeechT5Processor, SpeechT5ForTextToSpeech, SpeechT5HifiGan
-from moviepy import ImageClip, AudioFileClip, CompositeVideoClip, VideoFileClip, TextClip, ColorClip
-from moviepy.video.VideoClip import VideoClip
-from PIL import Image, ImageFilter
-from basic_pitch.inference import predict as predict_midi
-from midi2audio import FluidSynth
-import soundfile as sf
-import madmom
+import spaces
 
 from definers import (
     init_pretrained_model,
