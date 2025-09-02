@@ -29,7 +29,6 @@ from definers import (
     extend_audio,
     audio_to_midi,
     midi_to_audio,
-    enhance_midi,
     autotune_vocals
 )
 
@@ -176,10 +175,6 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-@spaces.GPU(duration=150)
-def _enhance_midi_logic(midi_path, format_choice, humanize):
-    return enhance_midi(midi_path, format_choice, humanize)
-
 @spaces.GPU(duration=240)
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
@@ -278,16 +273,6 @@ def main():
                                 with gr.Column():
                                     with gr.Group(visible=False) as m2a_output_box:
                                         m2a_output = gr.Audio(label="Output Audio", interactive=False, show_download_button=True)
-                        with gr.TabItem("AI MIDI Enhancer"):
-                            with gr.Row():
-                                with gr.Column():
-                                    enhance_midi_input = gr.File(label="Upload Melody MIDI", file_types=[".mid", ".midi"])
-                                    enhance_midi_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                                    enhance_midi_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
-                                    with gr.Row(): enhance_midi_btn = gr.Button("Enhance MIDI", variant="primary"); clear_enhance_midi_btn = gr.Button("Clear", variant="secondary")
-                                with gr.Column():
-                                    with gr.Group(visible=False) as enhance_midi_output_box:
-                                        enhance_midi_output = gr.Audio(label="Enhanced Audio", interactive=False, show_download_button=True)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_audio_extender:
                     gr.Markdown("## Audio Extender")
                     with gr.Row():
@@ -532,7 +517,6 @@ def main():
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, None, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, None, _midi_to_audio_logic, m2a_input, m2a_format)
-        create_ui_handler(enhance_midi_btn, enhance_midi_output, enhance_midi_output_box, None, _enhance_midi_logic, enhance_midi_input, enhance_midi_format, enhance_midi_humanize)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
         create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
         create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_prompt, video_gen_format)
@@ -612,7 +596,6 @@ def main():
         clear_autotune_btn.click(lambda: clear_ui(autotune_input, autotune_output, autotune_output_box), [], [autotune_input, autotune_output, autotune_output_box])
         clear_a2m_btn.click(lambda: clear_ui(a2m_input, a2m_output, a2m_output_box), [], [a2m_input, a2m_output, a2m_output_box])
         clear_m2a_btn.click(lambda: clear_ui(m2a_input, m2a_output, m2a_output_box), [], [m2a_input, m2a_output, m2a_output_box])
-        clear_enhance_midi_btn.click(lambda: clear_ui(enhance_midi_input, enhance_midi_output, enhance_midi_output_box), [], [enhance_midi_input, enhance_midi_output, enhance_midi_output_box])
         clear_extender_btn.click(lambda: clear_ui(extender_input, extender_output, extender_output_box), [], [extender_input, extender_output, extender_output_box])
         clear_stem_mixer_btn.click(lambda: clear_ui(stem_mixer_files, stem_mixer_output, stem_mixer_output_box), [], [stem_mixer_files, stem_mixer_output, stem_mixer_output_box])
         clear_feedback_btn.click(lambda: clear_ui(feedback_input, feedback_output), [], [feedback_input, feedback_output])
