@@ -2,10 +2,11 @@ import gradio as gr
 import spaces
 
 from definers import (
-    init_pretrained_model,
+    apt_install,
     install_faiss,
     install_ffmpeg,
     install_audio_effects,
+    init_pretrained_model,
     transcribe_audio,
     generate_voice,
     cwd,
@@ -32,16 +33,17 @@ from definers import (
     autotune_vocals
 )
 
+apt_install()
+install_faiss()
+install_ffmpeg()
+install_audio_effects()
+
 init_pretrained_model("tts")
 init_pretrained_model("svc")
 init_pretrained_model("speech-recognition")
 init_pretrained_model("audio-classification")
 init_pretrained_model("music")
 init_pretrained_model("answer")
-
-install_faiss()
-install_ffmpeg()
-install_audio_effects()
 
 set_system_message(
     name="Fazzer",
@@ -618,4 +620,5 @@ def main():
     app.queue(max_size=3).launch(inbrowser=True)
 
 if __name__ == "__main__":
+
     main()
