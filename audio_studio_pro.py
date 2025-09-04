@@ -430,7 +430,7 @@ def main():
                             vg_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             vg_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row():
-                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=true);
+                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=True);
                                 clear_vg_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vg_output_box:
