@@ -36,7 +36,8 @@ from definers import (
     save_text_to_file,
     init_chat,
     device,
-    random_string
+    random_string,
+    create_share_links
 )
 
 apt_install()
@@ -81,7 +82,7 @@ an AI video generator which creates a simple and abstract music visualizer - upl
 a speed & pitch changer which changes the playback speed of a track - upload audio, use the 'Speed Factor' slider (e.g., 1.5x is faster), and check 'Preserve Pitch' for a more natural sound;
 a stems separator which splits a song into vocals and instrumental - upload a full song and choose either 'Acapella (Vocals Only)' or 'Karaoke (Instrumental Only)';
 a vocal pitch shifter which changes the pitch of only the vocals in a song - upload a song and use the 'Vocal Pitch Shift' slider to raise or lower the vocal pitch in semitones;
-a RVC based voice lab tool for voice cloning & conversion tool which converts a song using a different AI voice, preserving the melody - ;
+a RVC based voice lab tool for voice cloning & conversion tool which converts a song using a different AI voice, preserving the melody - upload your training audio files, click 'Train' to create a voice model, then use the 'Convert' tab to apply that voice to a new audio input;
 a dj tool which automatically mixes multiple songs together - upload two or more tracks. Choose 'Beatmatched Crossfade' for a smooth, tempo-synced mix and adjust the 'Transition Duration';
 an AI music generator which creates original music from a text description - write a description of the music you want (e.g., 'upbeat synthwave'), set the duration, and click 'Generate Music';
 an AI voice generator which clones a voice to say anything you type - upload a clean 5-15 second 'Reference Voice' sample, type the 'Text to Speak', and click 'Generate Voice';
@@ -132,7 +133,7 @@ def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animatio
     return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
 @spaces.GPU(duration=180)
-def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position, language):
+def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position):
     return lyric_video(audio_path, background_path, lyrics_text, text_position)
 
 def stretch_audio_cli(input_path, output_path, speed_factor, crispness):
@@ -210,7 +211,6 @@ def main():
     """
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(language_codes.values()))
-    tts_enabled = all([MODELS["tts"]])
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
@@ -423,7 +423,6 @@ def main():
                                 gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_voice_gen:
                     gr.Markdown("## AI Voice Generation")
-                    if not tts_enabled: gr.Markdown("<p style='color:red;text-align:center;'>Voice Generation model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
                             vg_ref = gr.Audio(label="Reference Voice (Clear, 5-15s)", type='filepath')
@@ -431,7 +430,7 @@ def main():
                             vg_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             vg_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row():
-                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=tts_enabled);
+                                vg_btn = gr.Button("Generate Voice", variant="primary", interactive=true);
                                 clear_vg_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as vg_output_box:
@@ -451,7 +450,7 @@ def main():
                         with gr.Column():
                             stt_input = gr.Audio(label="Upload Speech Audio", type="filepath")
                             stt_language = gr.Dropdown(language_choices, label="Language", value="english")
-                            with gr.Row(): stt_btn = gr.Button("Transcribe Audio", variant="primary", interactive=asr_pipeline is not None); clear_stt_btn = gr.Button("Clear", variant="secondary")
+                            with gr.Row(): stt_btn = gr.Button("Transcribe Audio", variant="primary", interactive=True); clear_stt_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             stt_output = gr.Textbox(label="Transcription Result", interactive=False, lines=10)
                             stt_file_output = gr.File(label="Download Transcript", interactive=False, visible=False)
@@ -509,14 +508,16 @@ def main():
 
         def create_ui_handler(btn, out_el, out_box, out_share, logic_func, *inputs):
             def ui_handler_generator(*args):
-                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None))
+                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
                 try:
                     result = logic_func(*args)
-                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result))
+                    share_text = "Check out this creation from Audio Studio Pro! 🎶"
+                    share_html = create_share_links(result, share_text)
+                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(value=share_html))
                 except Exception as e:
-                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None))
+                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
                     raise gr.Error(str(e))
-            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el])
+            btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
         create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
