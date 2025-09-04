@@ -20,7 +20,7 @@ from definers import (
     lyric_video,
     stretch_audio,
     get_audio_feedback,
-    generate_video,
+    music_video,
     change_audio_speed,
     analyze_audio_features,
     separate_stems,
@@ -32,7 +32,11 @@ from definers import (
     audio_to_midi,
     midi_to_audio,
     autotune_vocals,
-    language_codes
+    language_codes,
+    save_text_to_file,
+    init_chat,
+    device,
+    random_string
 )
 
 apt_install()
@@ -129,7 +133,7 @@ def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animatio
 
 @spaces.GPU(duration=180)
 def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position, language):
-    return lyric_video(audio_path, background_path, lyrics_text, text_position, language)
+    return lyric_video(audio_path, background_path, lyrics_text, text_position)
 
 def stretch_audio_cli(input_path, output_path, speed_factor, crispness):
     return stretch_audio(input_path, output_path, speed_factor, crispness)
@@ -160,8 +164,8 @@ def _get_feedback_logic(audio_path):
     return get_audio_feedback(audio_path)
 
 @spaces.GPU(duration=180)
-def _generate_video_logic(audio_path, prompt, format_choice):
-    return generate_video(audio_path, prompt, format_choice)
+def _generate_video_logic(audio_path):
+    return music_video(audio_path)
 
 @spaces.GPU(duration=30)
 def _identify_instruments_logic(audio_path):
@@ -318,16 +322,14 @@ def main():
                         with gr.Column():
                             instrument_id_output = gr.Markdown(label="Detected Instruments")
                 with gr.Group(visible=False, elem_classes="tool-container") as view_video_gen:
-                    gr.Markdown("## AI Video Generation")
+                    gr.Markdown("## AI Music Clip Generation")
                     with gr.Row():
                         with gr.Column():
                             video_gen_audio = gr.Audio(label="Upload Audio", type='filepath')
-                            video_gen_prompt = gr.Textbox(label="Visual Prompt (e.g., 'blue electric pulse, geometric shapes')", placeholder="Describe the visuals...")
-                            video_gen_format = gr.Radio(["MP4"], label="Output Format", value="MP4")
                             with gr.Row(): video_gen_btn = gr.Button("Generate Video", variant="primary"); clear_video_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as video_gen_output_box:
-                                video_gen_output = gr.Video(label="Generated Video", interactive=False, show_download_button=True)
+                                video_gen_output = gr.Video(label="Generated Clip", interactive=False, show_download_button=True)
                                 video_gen_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_speed:
                     gr.Markdown("## Speed & Pitch")
@@ -407,14 +409,14 @@ def main():
                                 dj_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_music_gen:
                     gr.Markdown("## AI Music Generation")
-                    if DEVICE == "cpu": gr.Markdown("<p style='color:orange;text-align:center;'>Running on a CPU. Music generation will be very slow.</p>")
+                    if device() == "cpu": gr.Markdown("<p style='color:orange;text-align:center;'>Running on a CPU. Music generation will be very slow.</p>")
                     with gr.Row():
                         with gr.Column():
                             gen_prompt = gr.Textbox(lines=4, label="Music Prompt", placeholder="e.g., '80s synthwave, retro, upbeat'")
                             gen_duration = gr.Slider(5, 30, 10, step=1, label="Duration (seconds)")
                             gen_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             gen_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
-                            with gr.Row(): gen_btn = gr.Button("Generate Music", variant="primary", interactive=(generation_model is not None)); clear_gen_btn = gr.Button("Clear", variant="secondary")
+                            with gr.Row(): gen_btn = gr.Button("Generate Music", variant="primary", interactive=True); clear_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as gen_output_box:
                                 gen_output = gr.Audio(label="Generated Music", interactive=False, show_download_button=True)
@@ -445,11 +447,10 @@ def main():
                             analysis_bpm_key_output = gr.Textbox(label="Detected Key & BPM", interactive=False)
                 with gr.Group(visible=False, elem_classes="tool-container") as view_stt:
                     gr.Markdown("## Speech-to-Text")
-                    if asr_pipeline is None: gr.Markdown("<p style='color:red;text-align:center;'>Speech recognition model failed to load and is disabled.</p>")
                     with gr.Row():
                         with gr.Column():
                             stt_input = gr.Audio(label="Upload Speech Audio", type="filepath")
-                            stt_language = gr.Dropdown(language_choices, label="Language", value="English")
+                            stt_language = gr.Dropdown(language_choices, label="Language", value="english")
                             with gr.Row(): stt_btn = gr.Button("Transcribe Audio", variant="primary", interactive=asr_pipeline is not None); clear_stt_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             stt_output = gr.Textbox(label="Transcription Result", interactive=False, lines=10)
@@ -476,8 +477,8 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             lyric_audio = gr.Audio(label="Upload Song", type="filepath"); lyric_bg = gr.File(label="Upload Background (Image or Video)", type="filepath")
-                            lyric_language = gr.Dropdown(language_choices, label="Lyric Language", value="English")
                             lyric_position = gr.Radio(["center", "bottom"], label="Text Position", value="bottom")
+                            lyric_language = gr.Dropdown(language_choices, label="Language", value="english")
                             with gr.Row(): lyric_btn = gr.Button("Create Lyric Video", variant="primary"); clear_lyric_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             lyric_text = gr.Textbox(label="Lyrics", lines=15, placeholder="Enter lyrics here, one line per phrase...")
@@ -523,7 +524,7 @@ def main():
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, None, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
         create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
-        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_prompt, video_gen_format)
+        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio)
         create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
         create_ui_handler(vps_btn, vps_output, vps_output_box, vps_share_links, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
@@ -531,7 +532,7 @@ def main():
         create_ui_handler(gen_btn, gen_output, gen_output_box, gen_share_links, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
         create_ui_handler(vg_btn, vg_output, vg_output_box, vg_share_links, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
         create_ui_handler(vis_btn, vis_output, vis_output_box, vis_share_links, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
-        create_ui_handler(lyric_btn, lyric_output, lyric_output_box, lyric_share_links, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position, lyric_language)
+        create_ui_handler(lyric_btn, lyric_output, lyric_output_box, lyric_share_links, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position)
         
         def feedback_ui(audio_path):
             yield {feedback_btn: gr.update(value="Analyzing...", interactive=False), feedback_output: ""}
@@ -584,9 +585,6 @@ def main():
                 raise gr.Error(str(e))
         spec_btn.click(spec_ui, [spec_input], [spec_btn, spec_output])
 
-        chatbot_msg.submit(_chatbot_response_logic, [chatbot_msg, chatbot_history], [chatbot_msg, chatbot_history])
-        clear_chatbot_btn.click(lambda: (None, None), None, [chatbot_msg, chatbot_history])
-
         def clear_ui(*components):
             updates = {}
             for comp in components:
@@ -604,7 +602,7 @@ def main():
         clear_stem_mixer_btn.click(lambda: clear_ui(stem_mixer_files, stem_mixer_output, stem_mixer_output_box), [], [stem_mixer_files, stem_mixer_output, stem_mixer_output_box])
         clear_feedback_btn.click(lambda: clear_ui(feedback_input, feedback_output), [], [feedback_input, feedback_output])
         clear_instrument_id_btn.click(lambda: clear_ui(instrument_id_input, instrument_id_output), [], [instrument_id_input, instrument_id_output])
-        clear_video_gen_btn.click(lambda: {**clear_ui(video_gen_audio, video_gen_output, video_gen_output_box), **{video_gen_prompt: ""}}, [], [video_gen_audio, video_gen_output, video_gen_output_box, video_gen_prompt])
+        clear_video_gen_btn.click(lambda: clear_ui(video_gen_audio, video_gen_output, video_gen_output_box), [], [video_gen_audio, video_gen_output, video_gen_output_box])
         clear_speed_btn.click(lambda: clear_ui(speed_input, speed_output, speed_output_box), [], [speed_input, speed_output, speed_output_box])
         clear_stem_btn.click(lambda: clear_ui(stem_input, stem_output, stem_output_box), [], [stem_input, stem_output, stem_output_box])
         clear_vps_btn.click(lambda: clear_ui(vps_input, vps_output, vps_output_box), [], [vps_input, vps_output, vps_output_box])
