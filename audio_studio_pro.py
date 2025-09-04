@@ -7,6 +7,7 @@ from definers import (
     install_ffmpeg,
     install_audio_effects,
     init_pretrained_model,
+    set_system_message,
     transcribe_audio,
     generate_voice,
     cwd,
