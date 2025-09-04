@@ -31,7 +31,8 @@ from definers import (
     extend_audio,
     audio_to_midi,
     midi_to_audio,
-    autotune_vocals
+    autotune_vocals,
+    language_codes
 )
 
 apt_install()
