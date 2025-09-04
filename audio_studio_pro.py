@@ -33,7 +33,7 @@ from definers import (
     midi_to_audio,
     autotune_vocals,
     language_codes,
-    save_text_to_file,
+    save_temp_text as save_text_to_file,
     init_chat,
     device,
     random_string,
