@@ -191,7 +191,6 @@ def _autotune_vocals_logic(audio_path, strength, format_choice):
 @spaces.GPU(duration=10)
 def _init_chat(title):
     return init_chat(title)
-)
 
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
