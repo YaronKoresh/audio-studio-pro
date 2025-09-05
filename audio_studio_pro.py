@@ -168,19 +168,19 @@ def _get_feedback_logic(audio_path):
 def _generate_video_logic(audio_path):
     return music_video(audio_path)
 
-@spaces.GPU(duration=30)
+@spaces.GPU(duration=40)
 def _identify_instruments_logic(audio_path):
     return identify_instruments(audio_path)
 
-@spaces.GPU(duration=120)
+@spaces.GPU(duration=180)
 def _extend_audio_logic(audio_path, extend_duration_s, format_choice, humanize):
     return extend_audio(audio_path, extend_duration_s, format_choice, humanize)
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=120)
 def _audio_to_midi_logic(audio_path):
     return audio_to_midi(audio_path)
 
-@spaces.GPU(duration=30)
+@spaces.GPU(duration=60)
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
@@ -511,7 +511,7 @@ def main():
                 try:
                     result = logic_func(*args)
                     share_text = "Check out this creation from Audio Studio Pro! 🎶"
-                    share_html = create_share_links(result, share_text)
+                    share_html = create_share_links("yaron123", "audio-studio-pro", result, share_text)
                     yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(value=share_html))
                 except Exception as e:
                     yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
