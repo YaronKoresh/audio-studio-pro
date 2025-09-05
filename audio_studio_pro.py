@@ -188,6 +188,11 @@ def _midi_to_audio_logic(midi_path, format_choice):
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
+@spaces.GPU(duration=10)
+def _init_chat(title):
+    return init_chat(title)
+)
+
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
         body_background_fill_dark="#111827", block_background_fill_dark="#1f2937", block_border_width="1px",
@@ -487,7 +492,7 @@ def main():
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
-                    chat = init_chat(
+                    chat = _init_chat(
                         "Audio Studio Pro support",
                     )
         nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
