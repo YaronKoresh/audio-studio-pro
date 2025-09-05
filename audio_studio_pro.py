@@ -271,7 +271,7 @@ def main():
                                     with gr.Row(): a2m_btn = gr.Button("Convert to MIDI", variant="primary"); clear_a2m_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as a2m_output_box:
-                                        a2m_output = gr.File(label="Output MIDI", interactive=False, show_download_button=True)
+                                        a2m_output = gr.File(label="Output MIDI", interactive=False)
                                         a2m_share_links = gr.Markdown()
                         with gr.TabItem("MIDI to Audio"):
                             with gr.Row():
