@@ -489,14 +489,6 @@ def main():
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     chat = init_chat(
                         "Audio Studio Pro support",
-                        [
-                            "Who are you?",
-                            "Who created this project?",
-                            "How does the Mastering tool work?",
-                            "What is Stem Mixing?",
-                            "Tell me about Voice Conversion.",
-                            "How can I extend a song?",
-                        ]                        
                     )
         nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
         views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
