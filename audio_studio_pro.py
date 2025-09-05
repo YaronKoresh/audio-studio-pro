@@ -271,7 +271,8 @@ def main():
                                     with gr.Row(): a2m_btn = gr.Button("Convert to MIDI", variant="primary"); clear_a2m_btn = gr.Button("Clear", variant="secondary")
                                 with gr.Column():
                                     with gr.Group(visible=False) as a2m_output_box:
-                                        a2m_output = gr.File(label="Output MIDI", interactive=False)
+                                        a2m_output = gr.File(label="Output MIDI", interactive=False, show_download_button=True)
+                                        a2m_share_links = gr.Markdown()
                         with gr.TabItem("MIDI to Audio"):
                             with gr.Row():
                                 with gr.Column():
@@ -281,6 +282,7 @@ def main():
                                 with gr.Column():
                                     with gr.Group(visible=False) as m2a_output_box:
                                         m2a_output = gr.Audio(label="Output Audio", interactive=False, show_download_button=True)
+                                        m2a_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_audio_extender:
                     gr.Markdown("## Audio Extender")
                     with gr.Row():
@@ -521,8 +523,8 @@ def main():
 
         create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
-        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, None, _audio_to_midi_logic, a2m_input)
-        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, None, _midi_to_audio_logic, m2a_input, m2a_format)
+        create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
+        create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
         create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
         create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio)
