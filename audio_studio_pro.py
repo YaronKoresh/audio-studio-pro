@@ -213,7 +213,7 @@ def main():
         #header { text-align: center; padding: 25px; margin-bottom: 20px; }
     """
     format_choices = ["MP3", "WAV", "FLAC"]
-    language_choices = sorted(list(language_codes.values()))
+    language_choices = sorted(list(set(language_codes.values())))
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
