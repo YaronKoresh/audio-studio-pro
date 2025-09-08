@@ -188,7 +188,6 @@ def _midi_to_audio_logic(midi_path, format_choice):
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
-@spaces.GPU(duration=10)
 def _init_chat(title):
     return init_chat(title)
 
