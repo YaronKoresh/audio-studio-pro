@@ -402,7 +402,7 @@ def main():
                     gr.Markdown("## DJ AutoMix")
                     with gr.Row():
                         with gr.Column():
-                            dj_files = gr.File(label="Upload Audio Tracks", file_count="multiple", type="filepath")
+                            dj_files = gr.File(label="Upload Audio Tracks", file_count="multiple", type="filepath", allow_reordering=True)
                             dj_mix_type = gr.Radio(["Simple Crossfade", "Beatmatched Crossfade"], label="Mix Type", value="Beatmatched Crossfade")
                             dj_target_bpm = gr.Number(label="Target BPM (Optional)")
                             dj_transition = gr.Slider(1, 15, 5, step=1, label="Transition Duration (seconds)")
