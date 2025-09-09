@@ -35,6 +35,7 @@ from definers import (
     language_codes,
     save_temp_text as save_text_to_file,
     init_chat,
+    answer,
     device,
     random_string,
     create_share_links
@@ -187,6 +188,10 @@ def _midi_to_audio_logic(midi_path, format_choice):
 @spaces.GPU(duration=300)
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
+
+@spaces.GPU(duration=40)
+def _answer(history):
+    return answer(history)
 
 def _init_chat(title):
     return init_chat(title)
@@ -492,6 +497,7 @@ def main():
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     chat = _init_chat(
                         "Audio Studio Pro support",
+                        _answer
                     )
         nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
         views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
@@ -615,7 +621,7 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-    app.queue(max_size=3).launch(inbrowser=True)
+    app.queue(max_size=5).launch(inbrowser=True)
 
 if __name__ == "__main__":
 
