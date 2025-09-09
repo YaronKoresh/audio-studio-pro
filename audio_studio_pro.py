@@ -193,9 +193,6 @@ def _autotune_vocals_logic(audio_path, strength, format_choice):
 def _answer(history):
     return answer(history)
 
-def _init_chat(title):
-    return init_chat(title)
-
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
         body_background_fill_dark="#111827", block_background_fill_dark="#1f2937", block_border_width="1px",
@@ -495,7 +492,7 @@ def main():
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
-                    chat = _init_chat(
+                    chat = init_chat(
                         "Audio Studio Pro support",
                         _answer
                     )
