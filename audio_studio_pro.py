@@ -167,7 +167,7 @@ def _pitch_shift_vocals_logic(audio_path, pitch_shift, format_choice):
 def _create_spectrum_visualization_logic(audio_path):
     return create_spectrum_visualization(audio_path)
 
-@spaces.GPU(duration=240)
+@spaces.GPU(duration=350)
 def _stem_mixer_logic(files, format_choice):
     return stem_mixer(files, format_choice)
 
@@ -195,7 +195,7 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-@spaces.GPU(duration=300)
+@spaces.GPU(duration=350)
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
@@ -633,3 +633,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
