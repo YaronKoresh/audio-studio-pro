@@ -69,6 +69,7 @@ set_system_message(
         "the name of your creator": "Yaron Koresh",
         "the origin country of your creator": "Israel",
         "your name": "Fazzer",
+        "the supported output formats": "MP3 320k, FLAC 16-bit, and WAV 16-bit PCM",
         "the complete list of the software's features with usage instructions": """
 a mastering tool to automatically enhances a track's loudness and clarity - upload your track, adjust the 'Mastering Strength' slider, choose an output format, and click 'Master Audio';
 a vocal auto-tuning tools that correct the pitch of vocals and aligns them to the beat - upload a full song, set the 'Tuning Strength' (1.0 is maximum), and click 'Auto-Tune Vocals';
@@ -189,7 +190,7 @@ def _midi_to_audio_logic(midi_path, format_choice):
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
-@spaces.GPU(duration=40)
+@spaces.GPU(duration=60)
 def _answer(history):
     return answer(history)
 
