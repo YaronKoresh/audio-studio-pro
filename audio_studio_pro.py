@@ -619,10 +619,11 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-    app.queue(max_size=5).launch(inbrowser=True)
+    app.queue().launch(inbrowser=True)
 
 if __name__ == "__main__":
 
     main()
+
 
 
