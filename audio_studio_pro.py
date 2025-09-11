@@ -139,7 +139,6 @@ def _generate_music_logic(prompt, duration_s, format_choice, humanize):
 def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choice):
     return dj_mix(files, mix_type, target_bpm, transition_sec, format_choice)
 
-@spaces.GPU(duration=240)
 def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animation_style, scale_intensity):
     return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
@@ -156,26 +155,21 @@ def _analyze_audio_features_logic(audio_path):
 def _change_audio_speed_logic(audio_path, speed_factor, preserve_pitch, format_choice):
     return change_audio_speed(audio_path, speed_factor, preserve_pitch, format_choice)
 
-@spaces.GPU(duration=150)
 def _separate_stems_logic(audio_path, separation_type, format_choice):
     return separate_stems(audio_path, separation_type, format_choice)
 
-@spaces.GPU(duration=150)
 def _pitch_shift_vocals_logic(audio_path, pitch_shift, format_choice):
     return pitch_shift_vocals(audio_path, pitch_shift, format_choice)
 
 def _create_spectrum_visualization_logic(audio_path):
     return create_spectrum_visualization(audio_path)
 
-@spaces.GPU(duration=350)
 def _stem_mixer_logic(files, format_choice):
     return stem_mixer(files, format_choice)
 
-@spaces.GPU(duration=40)
 def _get_feedback_logic(audio_path):
     return get_audio_feedback(audio_path)
 
-@spaces.GPU(duration=240)
 def _generate_video_logic(audio_path):
     return music_video(audio_path)
 
@@ -187,19 +181,16 @@ def _identify_instruments_logic(audio_path):
 def _extend_audio_logic(audio_path, extend_duration_s, format_choice, humanize):
     return extend_audio(audio_path, extend_duration_s, format_choice, humanize)
 
-@spaces.GPU(duration=180)
 def _audio_to_midi_logic(audio_path):
     return audio_to_midi(audio_path)
 
-@spaces.GPU(duration=120)
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-@spaces.GPU(duration=350)
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=30)
 def _answer(history):
     return answer(history)
 
@@ -633,4 +624,5 @@ def main():
 if __name__ == "__main__":
 
     main()
+
 
