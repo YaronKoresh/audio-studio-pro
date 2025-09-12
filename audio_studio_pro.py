@@ -124,11 +124,12 @@ def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
 
-@spaces.GPU(duration=150)
+@spaces.GPU(duration=240)
 def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
+@spaces.GPU(duration=60)
 def _master_logic(source_path, strength, format_choice):
     return master(source_path, strength, format_choice)
 
@@ -142,10 +143,11 @@ def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choic
 def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animation_style, scale_intensity):
     return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
-@spaces.GPU(duration=180)
+@spaces.GPU(duration=160)
 def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position):
     return lyric_video(audio_path, background_path, lyrics_text, text_position)
 
+@spaces.GPU(duration=100)
 def stretch_audio_cli(input_path, output_path, speed_factor, crispness):
     return stretch_audio(input_path, output_path, speed_factor, crispness)
 
@@ -155,15 +157,18 @@ def _analyze_audio_features_logic(audio_path):
 def _change_audio_speed_logic(audio_path, speed_factor, preserve_pitch, format_choice):
     return change_audio_speed(audio_path, speed_factor, preserve_pitch, format_choice)
 
+@spaces.GPU(duration=70)
 def _separate_stems_logic(audio_path, separation_type, format_choice):
     return separate_stems(audio_path, separation_type, format_choice)
 
+@spaces.GPU(duration=50)
 def _pitch_shift_vocals_logic(audio_path, pitch_shift, format_choice):
     return pitch_shift_vocals(audio_path, pitch_shift, format_choice)
 
 def _create_spectrum_visualization_logic(audio_path):
     return create_spectrum_visualization(audio_path)
 
+@spaces.GPU(duration=30)
 def _stem_mixer_logic(files, format_choice):
     return stem_mixer(files, format_choice)
 
