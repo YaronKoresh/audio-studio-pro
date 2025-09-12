@@ -187,8 +187,8 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-def _autotune_vocals_logic(audio_path, strength, format_choice):
-    return autotune_vocals(audio_path, strength, format_choice)
+def _autotune_vocals_logic(audio_path, format_choice):
+    return autotune_vocals(audio_path, format_choice)
 
 @spaces.GPU(duration=15)
 def _answer(history):
