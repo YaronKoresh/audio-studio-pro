@@ -120,9 +120,9 @@ def _generate_voice_logic(text, reference_audio, format_choice, humanize):
     return generate_voice(text, reference_audio, format_choice, humanize)
 
 @spaces.GPU(duration=60)
-def handle_conversion(experiment,inp,ptch):
+def handle_conversion(experiment,inp):
     with cwd():
-        return convert_vocal_rvc(experiment,inp,ptch)
+        return convert_vocal_rvc(experiment,inp)
 
 @spaces.GPU(duration=150)
 def handle_training(experiment,inp,lvl):
@@ -391,15 +391,13 @@ def main():
                             type="filepath",
                             file_count="multiple"
                         )
-                    with gr.Row():
-                        ptch = gr.Number(label="Pitch",value=0,minimum=-12,maximum=12,step=1)
                     with gr.Row(visible=False):
                         lvl = gr.Number(label="(re-)training step",value=1,minimum=1,step=1)
                     with gr.Row():
                         but1 = gr.Button("Train", variant="primary")
                         but1.click( fn=handle_training, inputs=[experiment,inp,lvl], outputs=[outp,lvl] )
                         but2 = gr.Button("Convert", variant="primary")
-                        but2.click( fn=handle_conversion, inputs=[experiment,inp,ptch], outputs=[outp] )
+                        but2.click( fn=handle_conversion, inputs=[experiment,inp], outputs=[outp] )
                 with gr.Group(visible=False, elem_classes="tool-container") as view_dj:
                     gr.Markdown("## DJ AutoMix")
                     with gr.Row():
