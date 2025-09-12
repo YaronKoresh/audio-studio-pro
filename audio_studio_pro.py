@@ -142,7 +142,7 @@ def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choic
 def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animation_style, scale_intensity):
     return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
-@spaces.GPU(duration=240)
+@spaces.GPU(duration=180)
 def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position):
     return lyric_video(audio_path, background_path, lyrics_text, text_position)
 
@@ -177,7 +177,7 @@ def _generate_video_logic(audio_path):
 def _identify_instruments_logic(audio_path):
     return identify_instruments(audio_path)
 
-@spaces.GPU(duration=180)
+@spaces.GPU(duration=120)
 def _extend_audio_logic(audio_path, extend_duration_s, format_choice, humanize):
     return extend_audio(audio_path, extend_duration_s, format_choice, humanize)
 
@@ -190,7 +190,7 @@ def _midi_to_audio_logic(midi_path, format_choice):
 def _autotune_vocals_logic(audio_path, strength, format_choice):
     return autotune_vocals(audio_path, strength, format_choice)
 
-@spaces.GPU(duration=30)
+@spaces.GPU(duration=15)
 def _answer(history):
     return answer(history)
 
