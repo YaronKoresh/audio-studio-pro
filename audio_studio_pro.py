@@ -260,7 +260,6 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             autotune_input = gr.Audio(label="Upload Full Song", type='filepath')
-                            autotune_strength = gr.Slider(0.1, 1.0, 0.7, step=0.1, label="Tuning Strength")
                             autotune_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): autotune_btn = gr.Button("Auto-Tune Vocals", variant="primary"); clear_autotune_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
@@ -521,7 +520,7 @@ def main():
             btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
         create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
-        create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_strength, autotune_format)
+        create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
