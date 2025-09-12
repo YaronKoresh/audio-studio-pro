@@ -248,7 +248,7 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             master_input = gr.Audio(label="Upload Track", type='filepath')
-                            master_strength = gr.Slider(1.0, 2.0, 1.5, step=0.1, label="Mastering Strength")
+                            master_strength = gr.Slider(1.0, 1.8, 1.4, step=0.2, label="Mastering Strength")
                             master_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): master_btn = gr.Button("Master Audio", variant="primary"); clear_master_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
