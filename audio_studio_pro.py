@@ -129,8 +129,8 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-def _master_logic(source_path, strength, format_choice):
-    return master(source_path, strength, format_choice)
+def _master_logic(source_path, format_choice):
+    return master(source_path, format_choice)
 
 @spaces.GPU(duration=90)
 def _generate_music_logic(prompt, duration_s, format_choice, humanize):
@@ -248,7 +248,6 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             master_input = gr.Audio(label="Upload Track", type='filepath')
-                            master_strength = gr.Slider(1.0, 1.8, 1.4, step=0.2, label="Mastering Strength")
                             master_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): master_btn = gr.Button("Master Audio", variant="primary"); clear_master_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
@@ -517,7 +516,7 @@ def main():
                     raise gr.Error(str(e))
             btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
-        create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_strength, master_format)
+        create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_format)
         create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
