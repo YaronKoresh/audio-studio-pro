@@ -119,7 +119,7 @@ def _transcribe_audio_logic(audio_path, language):
 def _generate_voice_logic(text, reference_audio, format_choice, humanize):
     return generate_voice(text, reference_audio, format_choice, humanize)
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=90)
 def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
