@@ -13,7 +13,6 @@ from definers import (
     cwd,
     convert_vocal_rvc,
     train_model_rvc,
-    master,
     generate_music,
     dj_mix,
     beat_visualizer,
@@ -31,7 +30,7 @@ from definers import (
     extend_audio,
     audio_to_midi,
     midi_to_audio,
-    autotune_vocals,
+    enhance_audio,
     language_codes,
     save_temp_text as save_text_to_file,
     init_chat,
@@ -129,8 +128,8 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-def _master_logic(source_path, format_choice):
-    return master(source_path, format_choice)
+def _enhance_audio_logic(source_path, format_choice):
+    return enhance_audio(source_path, format_choice)
 
 @spaces.GPU(duration=90)
 def _generate_music_logic(prompt, duration_s, format_choice, humanize):
@@ -187,10 +186,7 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-def _autotune_vocals_logic(audio_path, format_choice):
-    return autotune_vocals(audio_path, format_choice)
-
-@spaces.GPU(duration=15)
+@spaces.GPU(duration=30)
 def _answer(history):
     return answer(history)
 
@@ -221,8 +217,7 @@ def main():
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
         with gr.Row(elem_id="main-row"):
             with gr.Column(scale=1, elem_id="sidebar"):
-                nav_master_btn = gr.Button("Mastering", variant="primary", elem_classes="nav-button")
-                nav_autotune_btn = gr.Button("Vocal Auto-Tune", variant="secondary", elem_classes="nav-button")
+                nav_enhance_btn = gr.Button("Audio Enhancer", variant="secondary", elem_classes="nav-button")
                 nav_midi_tools_btn = gr.Button("MIDI Tools", variant="secondary", elem_classes="nav-button")
                 nav_audio_extender_btn = gr.Button("Audio Extender", variant="secondary", elem_classes="nav-button")
                 nav_stem_mixer_btn = gr.Button("Stem Mixer", variant="secondary", elem_classes="nav-button")
@@ -243,28 +238,17 @@ def main():
                 nav_lyric_vid_btn = gr.Button("Lyric Video", variant="secondary", elem_classes="nav-button")
                 nav_chatbot_btn = gr.Button("Support Chat", variant="secondary", elem_classes="nav-button")
             with gr.Column(scale=4, elem_id="main-content"):
-                with gr.Group(visible=True, elem_classes="tool-container") as view_master:
-                    gr.Markdown("## Mastering")
+                with gr.Group(visible=True, elem_classes="tool-container") as view_enhancer:
+                    gr.Markdown("## Audio Enhancer")
                     with gr.Row():
                         with gr.Column():
-                            master_input = gr.Audio(label="Upload Track", type='filepath')
-                            master_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            with gr.Row(): master_btn = gr.Button("Master Audio", variant="primary"); clear_master_btn = gr.Button("Clear", variant="secondary")
+                            enhancer_input = gr.Audio(label="Upload Track", type='filepath')
+                            enhancer_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
+                            with gr.Row(): enhancer_btn = gr.Button("Enhance Audio", variant="primary"); clear_enhancer_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
-                             with gr.Group(visible=False) as master_output_box:
-                                master_output = gr.Audio(label="Mastered Output", interactive=False, show_download_button=True)
-                                master_share_links = gr.Markdown()
-                with gr.Group(visible=False, elem_classes="tool-container") as view_autotune:
-                    gr.Markdown("## Vocal Auto-Tune")
-                    with gr.Row():
-                        with gr.Column():
-                            autotune_input = gr.Audio(label="Upload Full Song", type='filepath')
-                            autotune_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            with gr.Row(): autotune_btn = gr.Button("Auto-Tune Vocals", variant="primary"); clear_autotune_btn = gr.Button("Clear", variant="secondary")
-                        with gr.Column():
-                            with gr.Group(visible=False) as autotune_output_box:
-                                autotune_output = gr.Audio(label="Auto-Tuned Song", interactive=False, show_download_button=True)
-                                autotune_share_links = gr.Markdown()
+                             with gr.Group(visible=False) as enhancer_output_box:
+                                enhancer_output = gr.Audio(label="Enhancer Output", interactive=False, show_download_button=True)
+                                enhancer_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_midi_tools:
                     gr.Markdown("## MIDI Tools")
                     with gr.Tabs():
@@ -490,11 +474,11 @@ def main():
                         lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     chat = init_chat(
-                        "Audio Studio Pro support",
+                        "Audio Studio Pro AI support",
                         _answer
                     )
-        nav_buttons = {"master": nav_master_btn, "autotune": nav_autotune_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
-        views = {"master": view_master, "autotune": view_autotune, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
+        nav_buttons = {"enhancer": nav_enhancer_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
+        views = {"enhancer": view_enhancer, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
 
         def switch_view(selected_view):
             view_updates = {view: gr.update(visible=(name == selected_view)) for name, view in views.items()}
@@ -516,8 +500,7 @@ def main():
                     raise gr.Error(str(e))
             btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
-        create_ui_handler(master_btn, master_output, master_output_box, master_share_links, _master_logic, master_input, master_format)
-        create_ui_handler(autotune_btn, autotune_output, autotune_output_box, autotune_share_links, _autotune_vocals_logic, autotune_input, autotune_format)
+        create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input, enhancer_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
@@ -592,8 +575,7 @@ def main():
                     updates[comp] = gr.update(visible=False)
             return updates
 
-        clear_master_btn.click(lambda: clear_ui(master_input, master_output, master_output_box), [], [master_input, master_output, master_output_box])
-        clear_autotune_btn.click(lambda: clear_ui(autotune_input, autotune_output, autotune_output_box), [], [autotune_input, autotune_output, autotune_output_box])
+        clear_enhancer_btn.click(lambda: clear_ui(enhancer_input, enhancer_output, enhancer_output_box), [], [enhancer_input, enhancer_output, enhancer_output_box])
         clear_a2m_btn.click(lambda: clear_ui(a2m_input, a2m_output, a2m_output_box), [], [a2m_input, a2m_output, a2m_output_box])
         clear_m2a_btn.click(lambda: clear_ui(m2a_input, m2a_output, m2a_output_box), [], [m2a_input, m2a_output, m2a_output_box])
         clear_extender_btn.click(lambda: clear_ui(extender_input, extender_output, extender_output_box), [], [extender_input, extender_output, extender_output_box])
@@ -618,8 +600,4 @@ def main():
     app.queue().launch(inbrowser=True)
 
 if __name__ == "__main__":
-
     main()
-
-
-
