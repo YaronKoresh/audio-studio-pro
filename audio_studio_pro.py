@@ -116,7 +116,7 @@ def _transcribe_audio_logic(audio_path, language):
 def _generate_voice_logic(text, reference_audio, format_choice, humanize):
     return generate_voice(text, reference_audio, format_choice, humanize)
 
-@spaces.GPU(duration=50)
+@spaces.GPU(duration=90)
 def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
@@ -126,11 +126,11 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=100)
 def _enhance_audio_logic(source_path, format_choice):
     return enhance_audio(source_path, format_choice)
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=80)
 def _generate_music_logic(prompt, duration_s, format_choice, humanize):
     return generate_music(prompt, duration_s, format_choice, humanize)
 
@@ -153,7 +153,7 @@ def _analyze_audio_features_logic(audio_path):
 def _change_audio_speed_logic(audio_path, speed_factor, preserve_pitch, format_choice):
     return change_audio_speed(audio_path, speed_factor, preserve_pitch, format_choice)
 
-@spaces.GPU(duration=30)
+@spaces.GPU(duration=60)
 def _separate_stems_logic(audio_path, separation_type, format_choice):
     return separate_stems(audio_path, separation_type, format_choice)
 
