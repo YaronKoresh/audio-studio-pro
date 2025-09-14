@@ -79,20 +79,18 @@ set_system_message(
         "the supported output formats": "MP3 320k, FLAC 16-bit, and WAV 16-bit PCM",
         "the export process": "by clicking on the small down-arrow download button",
         "the complete list of the software's features with usage instructions": """
-a mastering tool to automatically enhances a track's loudness and clarity - upload your track, adjust the 'Mastering Strength' slider, choose an output format, and click 'Master Audio';
-a vocal auto-tuning tools that correct the pitch of vocals and aligns them to the beat - upload a full song, set the 'Tuning Strength' (1.0 is maximum), and click 'Auto-Tune Vocals';
+an audio enhancement tool to auto-tune and master your track - upload your track, choose an output format, and click 'Enhance Audio';
 audio to midi converter - upload an audio file and click 'Convert to MIDI';
 midi to audio converter - upload a MIDI file and click 'Convert to Audio';
-AI midi enhancer which takes a simple midi melody and uses AI to generate a fuller musical arrangement - upload a MIDI melody file, choose an output format, choose if to 'Humanize AI Output', and click 'Enhance MIDI';
 an audio extender that uses AI to seamlessly continue a piece of music - upload your audio, use the 'Extend Duration' slider to choose how many seconds to add, and click 'Extend Audio';
 a stem mixer that mixes individual instrument tracks (stems) together - upload multiple audio files (e.g., drums.wav, bass.wav). The tool automatically beatmatches them to the first track and mixes them;
-a track feedbacks generator that provides AI-powered analysis and advice on your mix - upload your track and click 'Get Feedback' for written analysis on its dynamics, stereo width, and frequency balance;
+a track feedbacks generator that provides an analysis and advice on your mix - upload your track and click 'Get Feedback' for written analysis on its dynamics, stereo width, and frequency balance;
 an instrument identifier from an audio file - upload an audio file and click 'Identify Instruments';
-an AI video generator which creates a simple and abstract music visualizer - upload an audio file and click 'Generate Video' to create a video with a pulsing circle that reacts to the music;
+a video generator which creates a simple and abstract music visualizer - upload an audio file and click 'Generate Video' to create a video with a pulsing circle that reacts to the music;
 a speed & pitch changer which changes the playback speed of a track - upload audio, use the 'Speed Factor' slider (e.g., 1.5x is faster), and check 'Preserve Pitch' for a more natural sound;
 a stems separator which splits a song into vocals and instrumental - upload a full song and choose either 'Acapella (Vocals Only)' or 'Karaoke (Instrumental Only)';
 a vocal pitch shifter which changes the pitch of only the vocals in a song - upload a song and use the 'Vocal Pitch Shift' slider to raise or lower the vocal pitch in semitones;
-a RVC based voice lab tool for voice cloning & conversion tool which converts a song using a different AI voice, preserving the melody - upload your training audio files, click 'Train' to create a voice model, then use the 'Convert' tab to apply that voice to a new audio input;
+a voice cloning and conversion tool for voice manipulation, preserving the melody - upload your training audio files, click 'Train' to create a voice model, then use the 'Convert' tab to apply that voice to a new audio input;
 a dj tool which automatically mixes multiple songs together - upload two or more tracks. Choose 'Beatmatched Crossfade' for a smooth, tempo-synced mix and adjust the 'Transition Duration';
 an AI music generator which creates original music from a text description - write a description of the music you want (e.g., 'upbeat synthwave'), set the duration, and click 'Generate Music';
 an AI voice generator which clones a voice to say anything you type - upload a clean 5-15 second 'Reference Voice' sample, type the 'Text to Speak', and click 'Generate Voice';
@@ -118,7 +116,7 @@ def _transcribe_audio_logic(audio_path, language):
 def _generate_voice_logic(text, reference_audio, format_choice, humanize):
     return generate_voice(text, reference_audio, format_choice, humanize)
 
-@spaces.GPU(duration=90)
+@spaces.GPU(duration=80)
 def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
