@@ -126,7 +126,7 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-@spaces.GPU(duration=100)
+@spaces.GPU(duration=200)
 def _enhance_audio_logic(source_path, format_choice):
     return enhance_audio(source_path, format_choice)
 
