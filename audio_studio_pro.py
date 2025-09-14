@@ -121,7 +121,7 @@ def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
 
-@spaces.GPU(duration=330)
+@spaces.GPU(duration=360)
 def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
