@@ -169,8 +169,8 @@ def _stem_mixer_logic(files, format_choice):
 def _get_feedback_logic(audio_path):
     return get_audio_feedback(audio_path)
 
-def _generate_video_logic(audio_path):
-    return music_video(audio_path)
+def _generate_video_logic(audio_path, preset):
+    return music_video(audio_path, preset)
 
 @spaces.GPU(duration=30)
 def _identify_instruments_logic(audio_path):
@@ -316,6 +316,7 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             video_gen_audio = gr.Audio(label="Upload Audio", type='filepath')
+                            video_gen_preset = gr.Radio(["vortex", "israel", "glitch"], label="Clip Style", value="israel")
                             with gr.Row(): video_gen_btn = gr.Button("Generate Video", variant="primary"); clear_video_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as video_gen_output_box:
@@ -505,7 +506,7 @@ def main():
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
         create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
-        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio)
+        create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_preset)
         create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
         create_ui_handler(vps_btn, vps_output, vps_output_box, vps_share_links, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
