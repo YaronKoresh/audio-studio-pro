@@ -197,47 +197,46 @@ def main():
         button_primary_text_color_dark="#ffffff", button_secondary_background_fill_dark="#374151",
         button_secondary_text_color_dark="#ffffff", slider_color_dark="#6366f1"
     )
+
     css = """
         footer {display: none !important;}
         .gradio-container, main { min-width: 100% !important; margin: auto !important; }
         #main-row { gap: 20px; }
-        #sidebar { background-color: #1f2937; border-radius: 15px; padding: 20px; min-width: min( 240px, 100%) !important; }
+        #nav-dropdown-wrapper { max-width: 600px; margin: auto; padding: 10px 0; }
         .tool-container { padding: 30px !important; background: none !important; border: none !important; }
         .tool-container h2 { margin-bottom: 2em !important; text-align: center !important; }
         .tool-container .styler { background: none !important; }
         .tool-container .row { column-gap: 1em !important; }
         .tool-container .column { width: 100%; }
         .tool-container .column:not(:has(*)), .tool-container .column:not(:has(:not(div,span))) { display: none !important; }
-        .nav-button:hover { border-color: #6366f1 !important; transform: scale(1.02); background: #374151 !important; }
         #header { text-align: center; padding: 25px; margin-bottom: 20px; }
     """
+
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(set(language_codes.values())))
+
     with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
+
+        tool_map = {
+            "Audio Enhancer": "enhancer", "MIDI Tools": "midi_tools", "Audio Extender": "audio_extender", "Stem Mixer": "stem_mixer", 
+            "Track Feedback": "feedback", "Instrument ID": "instrument_id", "Music Clip Generation": "video_gen", 
+            "Speed & Pitch": "speed", "Stem Separation": "stem", "Vocal Pitch Shifter": "vps", "Voice Lab": "voice_lab", 
+            "DJ AutoMix": "dj", "Music Gen": "music_gen", "Voice Gen": "voice_gen", "Analysis": "analysis", 
+            "Speech-to-Text": "stt", "Spectrum": "spectrum", "Beat Visualizer": "beat_vis", "Lyric Video": "lyric_vid", 
+            "Support Chat": "chatbot"
+        }
+        
+        with gr.Row(elem_id="nav-dropdown-wrapper"):
+            nav_dropdown = gr.Dropdown(
+                choices=list(tool_map.keys()),
+                value="Audio Enhancer", # Default tool
+                label="Select a Tool",
+                elem_id="nav-dropdown"
+            )
+
         with gr.Row(elem_id="main-row"):
-            with gr.Column(scale=1, elem_id="sidebar"):
-                nav_enhance_btn = gr.Button("Audio Enhancer", variant="secondary", elem_classes="nav-button")
-                nav_midi_tools_btn = gr.Button("MIDI Tools", variant="secondary", elem_classes="nav-button")
-                nav_audio_extender_btn = gr.Button("Audio Extender", variant="secondary", elem_classes="nav-button")
-                nav_stem_mixer_btn = gr.Button("Stem Mixer", variant="secondary", elem_classes="nav-button")
-                nav_feedback_btn = gr.Button("Track Feedback", variant="secondary", elem_classes="nav-button")
-                nav_instrument_id_btn = gr.Button("Instrument ID", variant="secondary", elem_classes="nav-button")
-                nav_video_gen_btn = gr.Button("Music Clip Generation", variant="secondary", elem_classes="nav-button")
-                nav_speed_btn = gr.Button("Speed & Pitch", variant="secondary", elem_classes="nav-button")
-                nav_stem_btn = gr.Button("Stem Separation", variant="secondary", elem_classes="nav-button")
-                nav_vps_btn = gr.Button("Vocal Pitch Shifter", variant="secondary", elem_classes="nav-button")
-                nav_voice_lab_btn = gr.Button("Voice Lab", variant="secondary", elem_classes="nav-button")
-                nav_dj_btn = gr.Button("DJ AutoMix", variant="secondary", elem_classes="nav-button")
-                nav_music_gen_btn = gr.Button("Music Gen", variant="secondary", elem_classes="nav-button")
-                nav_voice_gen_btn = gr.Button("Voice Gen", variant="secondary", elem_classes="nav-button")
-                nav_analysis_btn = gr.Button("Analysis", variant="secondary", elem_classes="nav-button")
-                nav_stt_btn = gr.Button("Speech-to-Text", variant="secondary", elem_classes="nav-button")
-                nav_spectrum_btn = gr.Button("Spectrum", variant="secondary", elem_classes="nav-button")
-                nav_beat_vis_btn = gr.Button("Beat Visualizer", variant="secondary", elem_classes="nav-button")
-                nav_lyric_vid_btn = gr.Button("Lyric Video", variant="secondary", elem_classes="nav-button")
-                nav_chatbot_btn = gr.Button("Support Chat", variant="secondary", elem_classes="nav-button")
-            with gr.Column(scale=4, elem_id="main-content"):
+            with gr.Column(scale=1, elem_id="main-content"):
                 with gr.Group(visible=True, elem_classes="tool-container") as view_enhancer:
                     gr.Markdown("## Audio Enhancer")
                     with gr.Row():
@@ -478,15 +477,14 @@ def main():
                         "Audio Studio Pro AI support",
                         _answer
                     )
-        nav_buttons = {"enhancer": nav_enhance_btn, "midi_tools": nav_midi_tools_btn, "audio_extender": nav_audio_extender_btn, "stem_mixer": nav_stem_mixer_btn, "feedback": nav_feedback_btn, "instrument_id": nav_instrument_id_btn, "video_gen": nav_video_gen_btn, "speed": nav_speed_btn, "stem": nav_stem_btn, "vps": nav_vps_btn, "voice_lab": nav_voice_lab_btn, "dj": nav_dj_btn, "music_gen": nav_music_gen_btn, "voice_gen": nav_voice_gen_btn, "analysis": nav_analysis_btn, "stt": nav_stt_btn, "spectrum": nav_spectrum_btn, "beat_vis": nav_beat_vis_btn, "lyric_vid": nav_lyric_vid_btn, "chatbot": nav_chatbot_btn}
+
         views = {"enhancer": view_enhancer, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
 
-        def switch_view(selected_view):
-            view_updates = {view: gr.update(visible=(name == selected_view)) for name, view in views.items()}
-            button_updates = {btn: gr.update(variant=("primary" if name == selected_view else "secondary")) for name, btn in nav_buttons.items()}
-            return {**view_updates, **button_updates}
+        def switch_view(selected_tool_name):
+            selected_view_key = tool_map[selected_tool_name]
+            return {view: gr.update(visible=(key == selected_view_key)) for key, view in views.items()}
 
-        for name, btn in nav_buttons.items(): btn.click(fn=lambda view=name: switch_view(view), inputs=None, outputs=list(views.values()) + list(nav_buttons.values()))
+        nav_dropdown.change(fn=switch_view, inputs=nav_dropdown, outputs=list(views.values()))
 
         def create_ui_handler(btn, out_el, out_box, out_share, logic_func, *inputs):
             def ui_handler_generator(*args):
