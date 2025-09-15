@@ -40,10 +40,10 @@ from definers import (
     create_share_links
 )
 
+install_audio_effects()
+install_ffmpeg()
 apt_install()
 install_faiss()
-install_ffmpeg()
-install_audio_effects()
 
 init_pretrained_model("tts")
 init_pretrained_model("svc")
