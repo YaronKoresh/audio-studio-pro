@@ -116,12 +116,12 @@ def _transcribe_audio_logic(audio_path, language):
 def _generate_voice_logic(text, reference_audio, format_choice):
     return generate_voice(text, reference_audio, format_choice)
 
-@spaces.GPU(duration=90)
+@spaces.GPU(duration=120)
 def handle_conversion(experiment,inp):
     with cwd():
         return convert_vocal_rvc(experiment,inp)
 
-@spaces.GPU(duration=360)
+@spaces.GPU(duration=180)
 def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
