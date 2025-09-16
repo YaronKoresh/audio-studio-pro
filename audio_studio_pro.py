@@ -2,6 +2,8 @@ import gradio as gr
 import spaces
 
 from definers import (
+    thread,
+    wait,
     css,
     apt_install,
     install_faiss,
@@ -44,14 +46,14 @@ from definers import (
 install_audio_effects()
 install_ffmpeg()
 apt_install()
-install_faiss()
 
-init_pretrained_model("tts")
-init_pretrained_model("svc")
-init_pretrained_model("speech-recognition")
-init_pretrained_model("audio-classification")
-init_pretrained_model("music")
-init_pretrained_model("answer")
+t1 = thread(install_faiss)
+t2 = thread(init_pretrained_model,"tts")
+t3 = thread(init_pretrained_model,"svc")
+t4 = thread(init_pretrained_model,"speech-recognition")
+t5 = thread(init_pretrained_model,"audio-classification")
+t6 = thread(init_pretrained_model,"music")
+t7 = thread(init_pretrained_model,"answer")
 
 set_system_message(
     name="Fazzer",
@@ -189,6 +191,8 @@ def _midi_to_audio_logic(midi_path, format_choice):
 def _answer(history):
     return answer(history)
 
+wait(t1,t2,t3,t4,t5,t6,t7)
+
 def main():
     theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
         body_background_fill_dark="#111827", block_background_fill_dark="#1f2937", block_border_width="1px",
@@ -199,8 +203,6 @@ def main():
 
     _css = css() + """
         footer {display: none !important;}
-        .gradio-container, main { min-width: 100% !important; margin: auto !important; }
-        #main-row { gap: 20px; }
         #nav-dropdown-wrapper { max-width: 600px; margin: auto; padding: 10px 0; }
         .tool-container { padding: 30px !important; background: none !important; border: none !important; }
         .tool-container h2 { margin-bottom: 2em !important; text-align: center !important; }
