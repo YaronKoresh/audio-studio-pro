@@ -200,7 +200,6 @@ def main():
 
     _css = css() + """
         footer {display: none !important;}
-        #nav-dropdown-wrapper { max-width: 600px; margin: auto; padding: 10px 0; }
         .tool-container { padding: 30px !important; background: none !important; border: none !important; }
         .tool-container h2 { margin-bottom: 2em !important; text-align: center !important; }
         .tool-container .styler { background: none !important; }
@@ -228,7 +227,7 @@ def main():
         with gr.Row(elem_id="nav-dropdown-wrapper"):
             nav_dropdown = gr.Dropdown(
                 choices=list(tool_map.keys()),
-                value="Audio Enhancer", # Default tool
+                value="Audio Enhancer",
                 label="Select a Tool",
                 elem_id="nav-dropdown"
             )
