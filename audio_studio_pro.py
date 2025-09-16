@@ -126,7 +126,6 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-@spaces.GPU(duration=200)
 def _enhance_audio_logic(source_path, format_choice):
     return enhance_audio(source_path, format_choice)
 
@@ -153,7 +152,6 @@ def _analyze_audio_features_logic(audio_path):
 def _change_audio_speed_logic(audio_path, speed_factor, preserve_pitch, format_choice):
     return change_audio_speed(audio_path, speed_factor, preserve_pitch, format_choice)
 
-@spaces.GPU(duration=60)
 def _separate_stems_logic(audio_path, separation_type, format_choice):
     return separate_stems(audio_path, separation_type, format_choice)
 
