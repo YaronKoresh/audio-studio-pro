@@ -47,13 +47,14 @@ install_audio_effects()
 install_ffmpeg()
 apt_install()
 
-t1 = thread(install_faiss)
-t2 = thread(init_pretrained_model,"tts")
-t3 = thread(init_pretrained_model,"svc")
-t4 = thread(init_pretrained_model,"speech-recognition")
-t5 = thread(init_pretrained_model,"audio-classification")
-t6 = thread(init_pretrained_model,"music")
-t7 = thread(init_pretrained_model,"answer")
+install_faiss()
+
+init_pretrained_model("tts")
+init_pretrained_model("svc")
+init_pretrained_model("speech-recognition")
+init_pretrained_model("audio-classification")
+init_pretrained_model("music")
+init_pretrained_model("answer")
 
 set_system_message(
     name="Fazzer",
