@@ -2,8 +2,6 @@ import gradio as gr
 import spaces
 
 from definers import (
-    thread,
-    wait,
     css,
     apt_install,
     install_faiss,
