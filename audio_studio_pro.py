@@ -113,8 +113,8 @@ def _transcribe_audio_logic(audio_path, language):
     return transcribe_audio(audio_path, language)
 
 @spaces.GPU(duration=50)
-def _generate_voice_logic(text, reference_audio, format_choice, humanize):
-    return generate_voice(text, reference_audio, format_choice, humanize)
+def _generate_voice_logic(text, reference_audio, format_choice):
+    return generate_voice(text, reference_audio, format_choice)
 
 @spaces.GPU(duration=90)
 def handle_conversion(experiment,inp):
@@ -131,8 +131,8 @@ def _enhance_audio_logic(source_path, format_choice):
     return enhance_audio(source_path, format_choice)
 
 @spaces.GPU(duration=80)
-def _generate_music_logic(prompt, duration_s, format_choice, humanize):
-    return generate_music(prompt, duration_s, format_choice, humanize)
+def _generate_music_logic(prompt, duration_s, format_choice):
+    return generate_music(prompt, duration_s, format_choice)
 
 def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choice):
     return dj_mix(files, mix_type, target_bpm, transition_sec, format_choice)
@@ -177,8 +177,8 @@ def _identify_instruments_logic(audio_path):
     return identify_instruments(audio_path)
 
 @spaces.GPU(duration=60)
-def _extend_audio_logic(audio_path, extend_duration_s, format_choice, humanize):
-    return extend_audio(audio_path, extend_duration_s, format_choice, humanize)
+def _extend_audio_logic(audio_path, extend_duration_s, format_choice):
+    return extend_audio(audio_path, extend_duration_s, format_choice)
 
 def _audio_to_midi_logic(audio_path):
     return audio_to_midi(audio_path)
@@ -277,7 +277,6 @@ def main():
                             extender_input = gr.Audio(label="Upload Audio to Extend", type='filepath')
                             extender_duration = gr.Slider(5, 60, 15, step=1, label="Extend Duration (seconds)")
                             extender_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            extender_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row(): extender_btn = gr.Button("Extend Audio", variant="primary"); clear_extender_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as extender_output_box:
@@ -403,7 +402,6 @@ def main():
                             gen_prompt = gr.Textbox(lines=4, label="Music Prompt", placeholder="e.g., '80s synthwave, retro, upbeat'")
                             gen_duration = gr.Slider(5, 30, 10, step=1, label="Duration (seconds)")
                             gen_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            gen_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row(): gen_btn = gr.Button("Generate Music", variant="primary", interactive=True); clear_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as gen_output_box:
@@ -416,7 +414,6 @@ def main():
                             vg_ref = gr.Audio(label="Reference Voice (Clear, 5-15s)", type='filepath')
                             vg_text = gr.Textbox(lines=4, label="Text to Speak", placeholder="Enter the text you want the generated voice to say...")
                             vg_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
-                            vg_humanize = gr.Checkbox(label="Humanize AI Output", value=True)
                             with gr.Row():
                                 vg_btn = gr.Button("Generate Voice", variant="primary", interactive=True);
                                 clear_vg_btn = gr.Button("Clear", variant="secondary")
@@ -502,15 +499,15 @@ def main():
         create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input, enhancer_format)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
-        create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format, extender_humanize)
+        create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format)
         create_ui_handler(stem_mixer_btn, stem_mixer_output, stem_mixer_output_box, stem_mixer_share_links, _stem_mixer_logic, stem_mixer_files, stem_mixer_format)
         create_ui_handler(video_gen_btn, video_gen_output, video_gen_output_box, video_gen_share_links, _generate_video_logic, video_gen_audio, video_gen_preset)
         create_ui_handler(speed_btn, speed_output, speed_output_box, speed_share_links, _change_audio_speed_logic, speed_input, speed_factor, preserve_pitch, speed_format)
         create_ui_handler(stem_btn, stem_output, stem_output_box, stem_share_links, _separate_stems_logic, stem_input, stem_type, stem_format)
         create_ui_handler(vps_btn, vps_output, vps_output_box, vps_share_links, _pitch_shift_vocals_logic, vps_input, vps_pitch, vps_format)
         create_ui_handler(dj_btn, dj_output, dj_output_box, dj_share_links, _auto_dj_mix_logic, dj_files, dj_mix_type, dj_target_bpm, dj_transition, dj_format)
-        create_ui_handler(gen_btn, gen_output, gen_output_box, gen_share_links, _generate_music_logic, gen_prompt, gen_duration, gen_format, gen_humanize)
-        create_ui_handler(vg_btn, vg_output, vg_output_box, vg_share_links, _generate_voice_logic, vg_text, vg_ref, vg_format, vg_humanize)
+        create_ui_handler(gen_btn, gen_output, gen_output_box, gen_share_links, _generate_music_logic, gen_prompt, gen_duration, gen_format)
+        create_ui_handler(vg_btn, vg_output, vg_output_box, vg_share_links, _generate_voice_logic, vg_text, vg_ref, vg_format)
         create_ui_handler(vis_btn, vis_output, vis_output_box, vis_share_links, _create_beat_visualizer_logic, vis_image_input, vis_audio_input, vis_effect, vis_animation, vis_intensity)
         create_ui_handler(lyric_btn, lyric_output, lyric_output_box, lyric_share_links, _create_lyric_video_logic, lyric_audio, lyric_bg, lyric_text, lyric_position)
         
