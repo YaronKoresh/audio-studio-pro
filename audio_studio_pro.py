@@ -2,6 +2,7 @@ import gradio as gr
 import spaces
 
 from definers import (
+    css,
     apt_install,
     install_faiss,
     install_ffmpeg,
@@ -196,7 +197,7 @@ def main():
         button_secondary_text_color_dark="#ffffff", slider_color_dark="#6366f1"
     )
 
-    css = """
+    _css = css() + """
         footer {display: none !important;}
         .gradio-container, main { min-width: 100% !important; margin: auto !important; }
         #main-row { gap: 20px; }
@@ -213,7 +214,7 @@ def main():
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(set(language_codes.values())))
 
-    with gr.Blocks(theme=theme, title="Audio Studio Pro", css=css) as app:
+    with gr.Blocks(theme=theme, title="Audio Studio Pro", css=_css) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
 
         tool_map = {
