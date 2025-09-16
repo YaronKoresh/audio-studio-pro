@@ -314,7 +314,7 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             video_gen_audio = gr.Audio(label="Upload Audio", type='filepath')
-                            video_gen_preset = gr.Radio(["vortex", "israel", "glitch"], label="Clip Style", value="israel")
+                            video_gen_preset = gr.Radio(["simple", "vortex", "israel", "glitch"], label="Clip Style", value="israel")
                             with gr.Row(): video_gen_btn = gr.Button("Generate Video", variant="primary"); clear_video_gen_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             with gr.Group(visible=False) as video_gen_output_box:
