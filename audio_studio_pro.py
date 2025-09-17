@@ -2,6 +2,7 @@ import gradio as gr
 import spaces
 
 from definers import (
+    google_drive_download,
     css,
     apt_install,
     pip_install,
