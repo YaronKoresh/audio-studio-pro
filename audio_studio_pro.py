@@ -4,7 +4,7 @@ import spaces
 from definers import (
     css,
     apt_install,
-    install_faiss,
+    pip_install,
     install_ffmpeg,
     install_audio_effects,
     init_pretrained_model,
@@ -44,8 +44,8 @@ from definers import (
 install_audio_effects()
 install_ffmpeg()
 apt_install()
-
-install_faiss()
+google_drive_download("18Xosd_8aoY9VcuK8rFLCqxdm3lQiPun7", "faiss.whl", False)
+pip_install("faiss.whl")
 
 init_pretrained_model("tts")
 init_pretrained_model("svc")
