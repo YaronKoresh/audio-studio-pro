@@ -45,8 +45,8 @@ from definers import (
 install_audio_effects()
 install_ffmpeg()
 apt_install()
-google_drive_download("18Xosd_8aoY9VcuK8rFLCqxdm3lQiPun7", "faiss.whl", False)
-pip_install("faiss.whl")
+google_drive_download("18Xosd_8aoY9VcuK8rFLCqxdm3lQiPun7", "./faiss-1.12.0-py3-none-any.whl", False)
+pip_install("faiss-1.12.0-py3-none-any.whl")
 
 init_pretrained_model("tts")
 init_pretrained_model("svc")
