@@ -3,6 +3,7 @@ import spaces
 
 from definers import (
     google_drive_download,
+    theme,
     css,
     apt_install,
     pip_install,
@@ -192,28 +193,11 @@ def _answer(history):
     return answer(history)
 
 def main():
-    theme = gr.themes.Base(primary_hue=gr.themes.colors.slate, secondary_hue=gr.themes.colors.indigo, font=(gr.themes.GoogleFont("Inter"), "ui-sans-serif", "system-ui", "sans-serif")).set(
-        body_background_fill_dark="#111827", block_background_fill_dark="#1f2937", block_border_width="1px",
-        block_title_background_fill_dark="#374151", button_primary_background_fill_dark="linear-gradient(90deg, #4f46e5, #7c3aed)",
-        button_primary_text_color_dark="#ffffff", button_secondary_background_fill_dark="#374151",
-        button_secondary_text_color_dark="#ffffff", slider_color_dark="#6366f1"
-    )
-
-    _css = css() + """
-        footer {display: none !important;}
-        .tool-container { padding: 30px !important; background: none !important; border: none !important; }
-        .tool-container h2 { margin-bottom: 2em !important; text-align: center !important; }
-        .tool-container .styler { background: none !important; }
-        .tool-container .row { column-gap: 1em !important; }
-        .tool-container .column { width: 100%; }
-        .tool-container .column:not(:has(*)), .tool-container .column:not(:has(:not(div,span))) { display: none !important; }
-        #header { text-align: center; padding: 25px; margin-bottom: 20px; }
-    """
 
     format_choices = ["MP3", "WAV", "FLAC"]
     language_choices = sorted(list(set(language_codes.values())))
 
-    with gr.Blocks(theme=theme, title="Audio Studio Pro", css=_css) as app:
+    with gr.Blocks(theme=theme(), title="Audio Studio Pro", css=css()) as app:
         gr.HTML("""<div id="header"><h1>Audio Studio Pro</h1><p>Your complete suite for professional audio production and AI-powered sound creation.</p></div>""")
 
         tool_map = {
