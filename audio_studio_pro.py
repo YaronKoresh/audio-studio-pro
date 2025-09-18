@@ -47,7 +47,7 @@ install_audio_effects()
 install_ffmpeg()
 apt_install()
 
-google_drive_download("1mmslP-w2Gg44yyo_bnTBxhdY9weJVqMr", "./faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl", False)
+google_drive_download("1jkmEQxSHYff05opUQ4czyDNj-2uQIK68", "faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl", False)
 pip_install("faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl")
 
 init_pretrained_model("tts")
@@ -580,3 +580,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
