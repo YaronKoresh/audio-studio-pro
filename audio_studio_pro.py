@@ -46,8 +46,9 @@ from definers import (
 install_audio_effects()
 install_ffmpeg()
 apt_install()
-google_drive_download("18Xosd_8aoY9VcuK8rFLCqxdm3lQiPun7", "./faiss-1.12.0-cp310-cp310-manylinux_2_17_x86_64.whl", False)
-pip_install("faiss-1.12.0-cp310-cp310-manylinux_2_17_x86_64.whl")
+
+google_drive_download("1mmslP-w2Gg44yyo_bnTBxhdY9weJVqMr", "./faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl", False)
+pip_install("faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl")
 
 init_pretrained_model("tts")
 init_pretrained_model("svc")
