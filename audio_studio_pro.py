@@ -50,6 +50,8 @@ apt_install()
 google_drive_download("1jkmEQxSHYff05opUQ4czyDNj-2uQIK68", "faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl", False)
 pip_install("faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl")
 
+pip_install("numpy==1.26.4")
+
 init_pretrained_model("tts")
 init_pretrained_model("svc")
 init_pretrained_model("speech-recognition")
@@ -580,4 +582,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
