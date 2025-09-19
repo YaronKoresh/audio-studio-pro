@@ -78,10 +78,10 @@ set_system_message(
         "Audio Studio Pro license": "Open source MIT license",
         "the official link to Audio Studio Pro original source code": "https://github.com/YaronKoresh/audio-studio-pro",
         "the complete AI models list that Audio Studio Pro depends on": """
-    1. openai/whisper-large-v2
-    2. MIT/ast-finetuned-audioset-10-10-0.4593
-    3. microsoft/Phi-4-multimodal-instruct
-    4. facebook/musicgen-small
+    1. For transcription: openai/whisper-large-v2
+    2. For instruments identification: MIT/ast-finetuned-audioset-10-10-0.4593
+    3. For support chat: microsoft/Phi-4-multimodal-instruct
+    4. For music generation: facebook/musicgen-small
         """,
         "the supported output formats": "MP3 320k, FLAC 16-bit, and WAV 16-bit PCM",
         "the export process": "by clicking on the small down-arrow download button",
