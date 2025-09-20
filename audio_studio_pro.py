@@ -191,9 +191,9 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-@spaces.GPU(duration=20)
-def _answer(history):
-    return answer(history)
+@spaces.GPU(duration=50)
+def _get_chat_response(message, history):
+    return get_chat_response(message, history)
 
 def main():
 
@@ -457,7 +457,7 @@ def main():
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
                     chat = init_chat(
                         "Audio Studio Pro AI support",
-                        _answer
+                        _get_chat_response
                     )
 
         views = {"enhancer": view_enhancer, "midi_tools": view_midi_tools, "audio_extender": view_audio_extender, "stem_mixer": view_stem_mixer, "feedback": view_feedback, "instrument_id": view_instrument_id, "video_gen": view_video_gen, "speed": view_speed, "stem": view_stem, "vps": view_vps, "voice_lab": view_voice_lab, "dj": view_dj, "music_gen": view_music_gen, "voice_gen": view_voice_gen, "analysis": view_analysis, "stt": view_stt, "spectrum": view_spectrum, "beat_vis": view_beat_vis, "lyric_vid": view_lyric_vid, "chatbot": view_chatbot}
