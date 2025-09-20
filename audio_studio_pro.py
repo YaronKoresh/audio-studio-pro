@@ -191,7 +191,7 @@ def _audio_to_midi_logic(audio_path):
 def _midi_to_audio_logic(midi_path, format_choice):
     return midi_to_audio(midi_path, format_choice)
 
-@spaces.GPU(duration=10)
+@spaces.GPU(duration=20)
 def _answer(history):
     return answer(history)
 
