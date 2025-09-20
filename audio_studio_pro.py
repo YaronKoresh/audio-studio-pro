@@ -57,7 +57,7 @@ init_pretrained_model("svc")
 init_pretrained_model("speech-recognition")
 init_pretrained_model("audio-classification")
 init_pretrained_model("music")
-init_pretrained_model("answer")
+init_pretrained_model("answer", True)
 
 set_system_message(
     name="Fazzer",
