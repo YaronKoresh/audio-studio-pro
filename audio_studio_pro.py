@@ -59,6 +59,7 @@ init_pretrained_model("audio-classification")
 init_pretrained_model("music")
 init_pretrained_model("summary")
 init_pretrained_model("answer")
+init_pretrained_model("translate")
 
 set_system_message(
     name="Fazzer",
