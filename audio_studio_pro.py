@@ -310,7 +310,7 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             speed_input = gr.Audio(label="Upload Track", type='filepath')
-                            speed_factor = gr.Slider(minimum=0.5, maximum=2.0, value=1.0, step=0.05, label="Speed Factor")
+                            speed_factor = gr.Slider(minimum=0.5, maximum=2.0, value=1.0, step=0.01, label="Speed Factor")
                             preserve_pitch = gr.Checkbox(label="Preserve Pitch (higher quality)", value=True)
                             speed_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): speed_btn = gr.Button("Change Speed", variant="primary"); clear_speed_btn = gr.Button("Clear", variant="secondary")
