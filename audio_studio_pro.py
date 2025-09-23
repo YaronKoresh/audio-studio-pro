@@ -135,8 +135,8 @@ def handle_training(experiment,inp,lvl):
     with cwd():
         return train_model_rvc(experiment,inp,lvl), lvl+1
 
-def _enhance_audio_logic(source_path, format_choice):
-    return enhance_audio(source_path, format_choice)
+def _enhance_audio_logic(source_path):
+    return enhance_audio(source_path)
 
 @spaces.GPU(duration=80)
 def _generate_music_logic(prompt, duration_s, format_choice):
@@ -228,7 +228,6 @@ def main():
                     with gr.Row():
                         with gr.Column():
                             enhancer_input = gr.Audio(label="Upload Track", type='filepath')
-                            enhancer_format = gr.Radio(format_choices, label="Output Format", value=format_choices[0])
                             with gr.Row(): enhancer_btn = gr.Button("Enhance Audio", variant="primary"); clear_enhancer_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                              with gr.Group(visible=False) as enhancer_output_box:
@@ -484,7 +483,7 @@ def main():
                     raise gr.Error(str(e))
             btn.click(ui_handler_generator, inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
-        create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input, enhancer_format)
+        create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
         create_ui_handler(m2a_btn, m2a_output, m2a_output_box, m2a_share_links, _midi_to_audio_logic, m2a_input, m2a_format)
         create_ui_handler(extender_btn, extender_output, extender_output_box, extender_share_links, _extend_audio_logic, extender_input, extender_duration, extender_format)
