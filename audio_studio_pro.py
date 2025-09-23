@@ -448,11 +448,13 @@ def main():
                         with gr.Column():
                             lyric_audio = gr.Audio(label="Upload Song", type="filepath"); lyric_bg = gr.File(label="Upload Background (Image or Video)", type="filepath")
                             lyric_position = gr.Radio(["center", "bottom"], label="Text Position", value="bottom")
-                            with gr.Row(): lyric_btn = gr.Button("Create Lyric Video", variant="primary"); clear_lyric_btn = gr.Button("Clear", variant="secondary")
                         with gr.Column():
                             lyric_text = gr.Textbox(label="Lyrics", lines=15, placeholder="Enter lyrics here, one line per phrase...")
                             load_transcript_btn = gr.Button("Get Lyrics from Audio (via Speech-to-Text)")
                             lyric_language = gr.Dropdown(language_choices, label="Lyrics language (for Speech-to-Text)", value="english")
+                    with gr.Row():
+                        lyric_btn = gr.Button("Create Lyric Video", variant="primary")
+                        clear_lyric_btn = gr.Button("Clear", variant="secondary")
                     with gr.Group(visible=False) as lyric_output_box:
                         lyric_output = gr.Video(label="Lyric Video Output", show_download_button=True); lyric_share_links = gr.Markdown()
                 with gr.Group(visible=False, elem_classes="tool-container") as view_chatbot:
