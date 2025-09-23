@@ -10,6 +10,7 @@ from definers import (
     install_ffmpeg,
     install_audio_effects,
     init_pretrained_model,
+    init_stable_whisper,
     set_system_message,
     transcribe_audio,
     generate_voice,
@@ -52,6 +53,7 @@ pip_install("faiss-1.12.0-py3-none-manylinux_2_35_x86_64.whl")
 
 pip_install("numpy==1.26.4")
 
+init_stable_whisper()
 init_pretrained_model("tts")
 init_pretrained_model("svc")
 init_pretrained_model("speech-recognition")
