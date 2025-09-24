@@ -150,6 +150,7 @@ def _auto_dj_mix_logic(files, mix_type, target_bpm, transition_sec, format_choic
 def _create_beat_visualizer_logic(image_path, audio_path, image_effect, animation_style, scale_intensity):
     return beat_visualizer(image_path, audio_path, image_effect, animation_style, scale_intensity)
 
+@spaces.GPU(duration=120)
 def _create_lyric_video_logic(audio_path, background_path, lyrics_text, text_position):
     return lyric_video(audio_path, background_path, lyrics_text, text_position)
 
