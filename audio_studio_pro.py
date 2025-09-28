@@ -581,9 +581,10 @@ def main():
 
         load_transcript_btn.click(lambda audio, lang: _transcribe_audio_logic(audio, lang), [lyric_audio, lyric_language], [lyric_text])
 
-    app.queue().launch(server_name="0.0.0.0", server_port=7860)
+    app.launch(server_name="0.0.0.0", server_port=7860)
 
 if __name__ == "__main__":
     main()
+
 
 
