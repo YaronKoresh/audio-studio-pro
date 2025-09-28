@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
     "spaces",
     "gradio",
-    "fastapi==0.99.0",
+    "fastapi==0.103.0",
     "definers @ git+https://github.com/YaronKoresh/definers.git",
 ]
 
