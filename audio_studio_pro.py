@@ -484,7 +484,7 @@ def main():
                 except Exception as e:
                     yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
                     raise gr.Error(str(e))
-            btn.click(keep_alive, inputs=[gr.State(ui_handler_generator), *inputs], outputs=[btn, out_box, out_el, out_share])
+            btn.click(keep_alive(ui_handler_generator), inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
         create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
@@ -581,12 +581,13 @@ def main():
         clear_vis_btn.click(lambda: clear_ui(vis_image_input, vis_audio_input, vis_output, vis_output_box), [], [vis_image_input, vis_audio_input, vis_output, vis_output_box])
         clear_lyric_btn.click(lambda: {**clear_ui(lyric_audio, lyric_bg, lyric_output, lyric_output_box), **{lyric_text: ""}}, [], [lyric_audio, lyric_bg, lyric_output, lyric_output_box, lyric_text])
 
-        load_transcript_btn.click(keep_alive, [gr.State(_transcribe_audio_logic), lyric_audio, lyric_language], [lyric_text])
+        load_transcript_btn.click(keep_alive(_transcribe_audio_logic), [lyric_audio, lyric_language], [lyric_text])
 
     app.launch(server_name="0.0.0.0", server_port=7860)
 
 if __name__ == "__main__":
     main()
+
 
 
 
