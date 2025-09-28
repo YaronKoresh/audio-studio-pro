@@ -484,7 +484,7 @@ def main():
                 except Exception as e:
                     yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
                     raise gr.Error(str(e))
-            btn.click(keep_alive(ui_handler_generator), inputs=inputs, outputs=[btn, out_box, out_el, out_share])
+            btn.click(keep_alive(ui_handler_generator, 4), inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
         create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input)
         create_ui_handler(a2m_btn, a2m_output, a2m_output_box, a2m_share_links, _audio_to_midi_logic, a2m_input)
