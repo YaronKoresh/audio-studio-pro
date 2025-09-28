@@ -18,8 +18,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "spaces==0.40.1",
-    "gradio==5.44.1",
+    "spaces",
+    "gradio",
+    "fastapi==0.99.0",
     "definers @ git+https://github.com/YaronKoresh/definers.git",
 ]
 
