@@ -469,15 +469,14 @@ def main():
 
         def create_ui_handler(btn, out_el, out_box, out_share, logic_func, *inputs):
             def ui_handler_generator(*args):
-                yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
+                #yield (gr.update(value="Processing...", interactive=False), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
                 try:
                     result = logic_func(*args)
                     share_text = "Check out this creation from Audio Studio Pro! 🎶"
                     share_html = create_share_links("yaron123", "audio-studio-pro", result, share_text)
-                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(value=share_html))
+                    return (gr.update(value=btn.value, interactive=True), gr.update(visible=True), gr.update(value=result), gr.update(value=share_html))
                 except Exception as e:
-                    yield (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
-                    raise gr.Error(str(e))
+                    return (gr.update(value=btn.value, interactive=True), gr.update(visible=False), gr.update(value=None), gr.update(value=""))
             btn.click(keep_alive(ui_handler_generator, 4), inputs=inputs, outputs=[btn, out_box, out_el, out_share])
 
         create_ui_handler(enhancer_btn, enhancer_output, enhancer_output_box, enhancer_share_links, _enhance_audio_logic, enhancer_input)
@@ -581,6 +580,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
 
 
