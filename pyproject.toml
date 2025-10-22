@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0,<81"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -18,9 +18,9 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "spaces",
-    "gradio",
-    "definers @ git+https://github.com/YaronKoresh/definers.git",
+    "spaces>=0.42.0,<0.43.0",
+    "gradio==5.48.0",
+    "numpy==1.26.4",
 ]
 
 [project.urls]
