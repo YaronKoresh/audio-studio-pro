@@ -1,4 +1,4 @@
-# Audio Studio Pro 🎵
+# Audio Studio Pro (discontinued, use [Definers](https://github.com/YaronKoresh/definers) instead) 🎵
 
 Audio Studio Pro is a comprehensive, AI-powered application for professional audio production. It provides a suite of tools for everything from mastering and mixing to voice conversion and music generation.
 
@@ -51,3 +51,4 @@ Contributions are welcome! Please feel free to submit a pull request or open an 
 ## License
 
 This project is licensed under the MIT License.
+
