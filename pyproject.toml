@@ -19,7 +19,7 @@ classifiers = [
 ]
 dependencies = [
     "spaces>=0.42.0,<0.43.0",
-    "gradio==5.48.0",
+    "gradio==6.15.0",
     "numpy==1.26.4",
     "pandas>=2.2.0,<=2.2.2",
     "fsspec>=2024.5.0,<2025.0.0",
